@@ -2,10 +2,11 @@
 TOKEN = ""
 PREFIX = "ma!"
 
-# MongoDB Database
-HOST = ""
-USER = ""
-PWD = ""
+# Postgresql Database
+PG_HOST = ""
+PG_USER = ""
+PG_PWD = ""
+PG_PORT = 0
 
 # Universalis
 UNIVERSALIS_BASE_URL = "https://universalis.app/api"
