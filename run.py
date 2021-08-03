@@ -1,12 +1,7 @@
-from bot.util import MarketAlertException
-import logging
 from bot.commands.tracking import Tracking
-import discord
 from discord.ext import commands, tasks
-import json
 
 import configs
-from bot import util
 
 class Bot(commands.Bot):
     def __init__(self, command_prefix, **options):

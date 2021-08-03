@@ -1,10 +1,9 @@
-from discord import errors, http
+from discord import http
 from bot.util import MarketAlertException
 from aiohttp.client_exceptions import ClientResponseError
 
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from discord.ext.commands.errors import CommandError
 
 from .. import http, util
 

@@ -1,5 +1,5 @@
 import aiohttp
-from .. import configs
+import configs
 
 async def get_item_name(item_id: int):
     async with aiohttp.ClientSession() as session:
