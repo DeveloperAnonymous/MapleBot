@@ -1,9 +1,9 @@
 import logging
 
-
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('marketalert')
-logging.getLogger('discord.state').setLevel(logging.ERROR)
+logger = logging.getLogger("maplebot")
+logging.getLogger("discord.state").setLevel(logging.ERROR)
+
 
 class MarketAlertException(Exception):
     def __init__(self, channel, message):
@@ -12,5 +12,3 @@ class MarketAlertException(Exception):
 
     def get_message(self):
         return f":bangbang: **{self.message}**"
-
-

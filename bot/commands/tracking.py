@@ -1,11 +1,11 @@
-from discord import http
-from bot.util import MarketAlertException
 from aiohttp.client_exceptions import ClientResponseError
-
+from discord import http
 from discord.ext import commands
 from discord.ext.commands.context import Context
 
-from .. import http, util
+from bot import http, util
+from bot.util import MarketAlertException
+
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
@@ -26,7 +26,8 @@ class Tracking(commands.Cog):
             await ctx.send(f"Tracking **{item_name}**")
         except ClientResponseError as err:
             if err.status == 404:
-                raise MarketAlertException(ctx.channel, "Requested item id was not found. Make sure you have a valid id")
+                raise MarketAlertException(ctx.channel,
+                                           "Requested item id was not found. Make sure you have a valid id")
             else:
                 await ctx.send(err.message)
 
@@ -34,10 +35,10 @@ class Tracking(commands.Cog):
         if isinstance(error, MarketAlertException):
             try:
                 ctx = error.channel
-                
+
                 await ctx.send(error.get_message())
             except:
-                util.logging.warn(f"Unable to send Exception message, \n{error.message}")
+                util.logging.warning(f"Unable to send Exception message, \n{error.message}")
         else:
             await ctx.send("Please check for correct usage")
             await ctx.send_help(ctx.command)
