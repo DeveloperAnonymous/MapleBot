@@ -26,7 +26,7 @@ class MarketConverter(commands.Converter):
             world = None
 
         return world, item_name
-        
+
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
@@ -47,7 +47,8 @@ class Tracking(commands.Cog):
             await ctx.send(f"Tracking **{xivapi_item.name}**")
         except ClientResponseError as err:
             if err.status == 404:
-                raise MarketAlertException(ctx.channel, "Requested item id was not found. Make sure you have a valid id")
+                raise MarketAlertException(ctx.channel,
+                                           "Requested item id was not found. Make sure you have a valid id")
             else:
                 await ctx.send(err.message)
 
@@ -58,26 +59,31 @@ class Tracking(commands.Cog):
         """
         world, item_name = content
         if world is not None and not any(world.lower() == x.lower() for x in configs.SERVERS.keys()):
-            raise MarketAlertException(ctx.channel, "Please specify a valid world from this selection:\n" + ", ".join(configs.SERVERS.keys()))
+            raise MarketAlertException(ctx.channel, "Please specify a valid world from this selection:\n" + ", ".join(
+                configs.SERVERS.keys()))
 
         message = await ctx.send(f"{e.LOADING} Searching for item...")
         try:
             xivapi_item = await xiv_api.get_item_by_name(item_name)
 
             if xivapi_item is None:
-                return await message.edit(content=f"{e.BANGBANG} Requested item \"{item_name}\" was not found. Make sure you have a valid item name")
-            
+                return await message.edit(
+                    content=f"{e.BANGBANG} Requested item \"{item_name}\" was not found. Make sure you have a valid item name")
+
             await message.edit(content=f"{e.LOADING} Searching for **{xivapi_item.name}**")
 
             universalis_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, world)
-            
-            sorted_listings = sorted(universalis_item.listings, key=lambda listing: (listing.price_per_unit, -listing.quantity))
 
-            embed = discord.Embed(title=f"{xivapi_item.name}", url=f"https://universalis.app/market/{xivapi_item.id}", color=0x00ff00)
+            sorted_listings = sorted(universalis_item.listings,
+                                     key=lambda listing: (listing.price_per_unit, -listing.quantity))
+
+            embed = discord.Embed(title=f"{xivapi_item.name}", url=f"https://universalis.app/market/{xivapi_item.id}",
+                                  color=0x00ff00)
             embed.set_thumbnail(url=xivapi_item.icon_url)
 
             embed.add_field(name="Top 10 Listings:", value="```\n" + "\n".join(
-                [f"{listing.world_name}: {listing.quantity}x {listing.price_per_unit}g ({listing.total}g)" for listing in sorted_listings[:10]]
+                [f"{listing.world_name}: {listing.quantity}x {listing.price_per_unit}g ({listing.total}g)" for listing
+                 in sorted_listings[:10]]
                 + ["```"]
             ), inline=False)
             embed.add_field(name="Minimum NQ price:", value=f"{universalis_item.min_price_nq}g")
@@ -87,10 +93,10 @@ class Tracking(commands.Cog):
             await message.edit(content=f"Results for **{xivapi_item.name}**", embed=embed)
         except ClientResponseError as err:
             if err.status == 404:
-                raise MarketAlertException(ctx.channel, "Requested item id was not found. Make sure you have a valid id")
+                raise MarketAlertException(ctx.channel,
+                                           "Requested item id was not found. Make sure you have a valid id")
             else:
                 await message.edit(content=err.message)
-
 
     async def cog_command_error(self, ctx: Context, error):
         error = error.original if isinstance(error, CommandInvokeError) else error

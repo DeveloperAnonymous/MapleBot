@@ -10,6 +10,7 @@ import configs
 Test server to test the websockets locally
 """
 
+
 async def time(websocket, path):
     while True:
         now = datetime.datetime.utcnow().isoformat() + "Z"
