@@ -60,5 +60,5 @@ class Moderation(commands.Cog):
         await ctx.reply(embed=update_embed)
 
         update_result = update_result.strip()
-        if not ("is up to date." in update_result or update_result == "Something went wrong!"):
+        if not ("up to date." in update_result or update_result == "Something went wrong!"):
             os._exit(1)
