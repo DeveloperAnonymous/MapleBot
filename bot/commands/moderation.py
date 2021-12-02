@@ -13,8 +13,9 @@ class Moderation(commands.Cog):
     @commands.has_permissions(manage_messages=True)
     async def nospoil(self, ctx: commands.Context):
         """
-        This command will remove the message you replied to.
+        Deletes the message you replied to.
         """
+        
         spoiler = ctx.message.reference
         spoiler_id = spoiler.message_id
         spoiler_message = await ctx.channel.fetch_message(spoiler_id)

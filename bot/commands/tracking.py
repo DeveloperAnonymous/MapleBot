@@ -42,6 +42,7 @@ class Tracking(commands.Cog):
         Example: https://universalis.app/market/29497
         item id would be "29497"
         """
+        
         try:
             xivapi_item = await xiv_api.get_item_by_name(item_name)
             await ctx.send(f"Tracking **{xivapi_item.name}**")
@@ -57,6 +58,7 @@ class Tracking(commands.Cog):
         """
         Gives you the current market price of an item.
         """
+
         world, item_name = content
         if world is not None and not any(world.lower() == x.lower() for x in configs.SERVERS.keys()):
             raise MarketAlertException(ctx.channel, "Please specify a valid world from this selection:\n" + ", ".join(
