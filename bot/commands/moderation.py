@@ -7,7 +7,7 @@ from discord.ext import commands
 
 class Moderation(commands.Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: discord.AutoShardedClient = bot
 
     @commands.command()
     @commands.has_permissions(administrator=True)
@@ -61,4 +61,4 @@ class Moderation(commands.Cog):
 
         update_result = update_result.strip()
         if not ("up to date." in update_result or update_result == "Something went wrong!"):
-            os._exit(1)
+            await self.bot.close()
