@@ -61,4 +61,4 @@ class Moderation(commands.Cog):
 
         update_result = update_result.strip()
         if not ("up to date." in update_result or update_result == "Something went wrong!"):
-            await self.bot.close()
+            exit(1)
