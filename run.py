@@ -35,9 +35,9 @@ class Bot(commands.Bot):
         await self.change_presence(activity=next(self.status_generator))
 
     @change_status.error
-    async def change_status_error(self, error):
+    async def change_status_error(self, _):
         util.logger.error("Something went wrong while changing status, restarting loop in 5 seconds...")
-        asyncio.sleep(5)
+        await asyncio.sleep(5)
         self.change_status.start()
 
 
