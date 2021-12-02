@@ -10,7 +10,7 @@ class Moderation(commands.Cog):
         self.bot: discord.AutoShardedClient = bot
 
     @commands.command()
-    @commands.has_permissions(administrator=True)
+    @commands.has_permissions(manage_messages=True)
     async def nospoil(self, ctx: commands.Context):
         spoiler = ctx.message.reference
         spoiler_id = spoiler.message_id
