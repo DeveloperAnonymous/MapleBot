@@ -29,9 +29,6 @@ class MarketConverter(commands.Converter):
 
 
 class Tracking(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-
     @commands.command()
     async def track(self, ctx: Context, item_name: str):
         """
@@ -42,7 +39,7 @@ class Tracking(commands.Cog):
         Example: https://universalis.app/market/29497
         item id would be "29497"
         """
-        
+
         try:
             xivapi_item = await xiv_api.get_item_by_name(item_name)
             await ctx.send(f"Tracking **{xivapi_item.name}**")

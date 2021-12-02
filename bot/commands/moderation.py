@@ -6,9 +6,6 @@ from discord.ext import commands
 
 
 class Moderation(commands.Cog):
-    def __init__(self, bot):
-        self.bot: discord.AutoShardedClient = bot
-
     @commands.command()
     @commands.has_permissions(manage_messages=True)
     async def nospoil(self, ctx: commands.Context):

@@ -12,8 +12,8 @@ class Bot(commands.Bot):
     def __init__(self, command_prefix, **options):
         super().__init__(command_prefix, **options)
 
-        self.add_cog(Tracking(self))
-        self.add_cog(Moderation(self))
+        self.add_cog(Tracking())
+        self.add_cog(Moderation())
 
         self.maple_items = []
         self.maple_alerts = []
