@@ -14,8 +14,10 @@ class Moderation(commands.Cog):
     async def nospoil(self, ctx: commands.Context):
         """
         Deletes the message you replied to.
+
+        Also mentions the user who sent the message.
         """
-        
+
         spoiler = ctx.message.reference
         spoiler_id = spoiler.message_id
         spoiler_message = await ctx.channel.fetch_message(spoiler_id)
