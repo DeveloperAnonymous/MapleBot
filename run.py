@@ -5,7 +5,7 @@ from discord.ext import commands, tasks
 
 import configs
 from bot import util
-from bot.commands import Tracking, Moderation
+from bot.commands import Tracking, Moderation, Sinner
 
 
 class Bot(commands.Bot):
@@ -14,6 +14,7 @@ class Bot(commands.Bot):
 
         self.add_cog(Tracking())
         self.add_cog(Moderation())
+        self.add_cog(Sinner())
 
         self.maple_items = []
         self.maple_alerts = []
