@@ -1,0 +1,1 @@
+nohup ./start_fixed.sh >> ../logs/market-alert.txt
