@@ -1,7 +1,7 @@
 import aiohttp
 
 import configs
-from bot.api.universalis.models.item import UniversalisItem
+from maplebot.api.universalis.models.item import UniversalisItem
 
 BASE_URL = configs.UNIVERSALIS_BASE_URL
 

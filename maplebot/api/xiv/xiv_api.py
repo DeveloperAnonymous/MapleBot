@@ -2,7 +2,7 @@ import aiohttp
 from pyxivapi.client import XIVAPIClient
 
 import configs
-from bot.api.xiv.models.items import XivApiItem
+from maplebot.api.xiv.models.items import XivApiItem
 
 BASE_URL = configs.XIVAPI_BASE_URL
 client: XIVAPIClient = None

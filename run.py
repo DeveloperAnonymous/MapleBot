@@ -2,19 +2,16 @@ import asyncio
 
 import discord
 from discord.ext import commands, tasks
+from maplebot.commands import Events
 
 import configs
-from bot import util
-from bot.commands import Tracking, Moderation, Sinner
+from maplebot import util
+from maplebot.commands import Tracking, Moderation, Sinner
 
 
 class Bot(commands.Bot):
     def __init__(self, command_prefix, **options):
-        super().__init__(command_prefix, **options)
-
-        self.add_cog(Tracking())
-        self.add_cog(Moderation())
-        self.add_cog(Sinner())
+        super().__init__(command_prefix, intents=discord.Intents.all(), **options)
 
         self.maple_items = []
         self.maple_alerts = []
@@ -24,6 +21,12 @@ class Bot(commands.Bot):
             discord.Activity(type=discord.ActivityType.playing, name="Maple Syrup Drinking Simulator"),
             discord.Activity(type=discord.ActivityType.watching, name="the market")
         ])
+    
+    async def setup_hook(self) -> None:
+        await self.add_cog(Events(self))
+        await self.add_cog(Tracking())
+        await self.add_cog(Moderation())
+        await self.add_cog(Sinner())
 
     async def on_ready(self):
         print(f"Logged as {self.user.name} #{self.user.id}")

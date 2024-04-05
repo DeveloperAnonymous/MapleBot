@@ -7,12 +7,12 @@ from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
 
 import configs
-from bot import emojis as e
-from bot import util
-from bot.api.universalis import universalis_api
-from bot.api.universalis.models.item import UniversalisItem
-from bot.api.xiv import xiv_api
-from bot.util import MarketAlertException
+from maplebot import emojis as e
+from maplebot import util
+from maplebot.api.universalis import universalis_api
+from maplebot.api.universalis.models.item import UniversalisItem
+from maplebot.api.xiv import xiv_api
+from maplebot.util import MarketAlertException
 
 
 class MarketConverter(commands.Converter):
