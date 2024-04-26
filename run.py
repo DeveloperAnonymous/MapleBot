@@ -1,49 +1,5 @@
-import asyncio
-
-import discord
-from discord.ext import commands, tasks
-from maplebot.commands import Events
-
 import configs
-from maplebot import util
-from maplebot.commands import Tracking, Moderation, Sinner
-
-
-class Bot(commands.Bot):
-    def __init__(self, command_prefix, **options):
-        super().__init__(command_prefix, intents=discord.Intents.all(), **options)
-
-        self.maple_items = []
-        self.maple_alerts = []
-
-        self.status_generator = iter([
-            discord.Activity(type=discord.ActivityType.watching, name="Maple Syrup"),
-            discord.Activity(type=discord.ActivityType.playing, name="Maple Syrup Drinking Simulator"),
-            discord.Activity(type=discord.ActivityType.watching, name="the market")
-        ])
-    
-    async def setup_hook(self) -> None:
-        await self.add_cog(Events(self))
-        await self.add_cog(Tracking())
-        await self.add_cog(Moderation())
-        await self.add_cog(Sinner())
-
-    async def on_ready(self):
-        print(f"Logged as {self.user.name} #{self.user.id}")
-
-        if not self.change_status.is_running():
-            self.change_status.start()
-
-    @tasks.loop(seconds=60)
-    async def change_status(self):
-        await self.change_presence(activity=next(self.status_generator))
-
-    @change_status.error
-    async def change_status_error(self, _):
-        util.logger.error("Something went wrong while changing status, restarting loop in 5 seconds...")
-        await asyncio.sleep(5)
-        self.change_status.start()
-
+from maplebot import Bot
 
 if __name__ == "__main__":
     bot = Bot(configs.PREFIX)

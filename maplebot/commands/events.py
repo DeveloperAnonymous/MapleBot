@@ -1,38 +1,52 @@
 import datetime
-from typing import List
 
 import discord
-from maplebot import emojis as e
+from dateutil import tz
+from discord import app_commands
+from discord.ext import commands
+
+from maplebot import Bot
+from maplebot import emojis as emojis
+from maplebot import util
+from maplebot.commands.modals.event import CreateEventModal
 from maplebot.event import Event
-from maplebot.interactions import EventInteraction
 from maplebot.requirement import (
     ILVLRequirement,
     LevelRequirement,
     ParticipantsRequirement,
     Requirement,
 )
-from dateutil import tz
-from discord.ext import commands
 
 
-class Events(commands.Cog):
-    def __init__(self, bot):
-        self.bot: commands.Bot = bot
+@app_commands.guild_only()
+class Events(
+    commands.GroupCog, group_name="event", description="Commands to manage events"
+):
+    def __init__(self, bot: Bot):
+        self.bot = bot
 
-    async def get_event_name(self, ctx: commands.Context, bot: commands.Bot) -> str:
-        message: discord.Message = await bot.wait_for(
-            "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
-            timeout=60,
-        )
-        event_name: str = message.content
-        await message.delete()
+    @app_commands.command(name="create", description="Create a new event")
+    async def create(
+        self,
+        interaction: discord.Interaction
+    ):
+        """
+        Create a new event
+        """
+        modal = CreateEventModal()
+        await interaction.response.send_modal(modal)
+        # await interaction.response.send_message(
+        #     f"""Creating event with the following parameters:
+        #                                   **Title:** {title}
+        #                                   **Description:** {description}
+        #                                   **Date:** {date}
+        #                                   **Minimum ilvl:** {min_ilvl}
+        #                                   **Minimum level:** {min_level}
+        #                                   **Maximum participants:** {max_participants}
+        #                                 """
+        # )
 
-        return event_name.content
-
-    @commands.command("createevent")
-    async def create_event(self, ctx: commands.Context):
+    async def old_create(self, interaction: discord.Interaction):
         """Create a new event"""
 
         bot = self.bot
@@ -51,13 +65,13 @@ class Events(commands.Cog):
         event_embed.set_footer(
             text="*NOTE: You can correct any mistakes you make at the end of the event creation process."
         )
-        original_message = await ctx.send(embed=event_embed)
+        await interaction.response.send_message(embed=event_embed)
 
         # Get the name of the event
         message: discord.Message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.author.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         event_name: str = message.content
@@ -71,13 +85,13 @@ class Events(commands.Cog):
             value="Please type the description of the event.",
             inline=False,
         )
-        await original_message.edit(embed=event_embed)
+        await interaction.response.edit_message(embed=event_embed)
 
         # Get the description of the event
         message: discord.Message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.user.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         event_description: str = message.content.replace("\\n", "\n")
@@ -92,13 +106,13 @@ class Events(commands.Cog):
             value="Please type the date of when the event will occur. (DD/MM/YYYY HH:mm TZ)",
             inline=False,
         )
-        await original_message.edit(embed=event_embed)
+        await interaction.response.edit_message(embed=event_embed)
 
         # Get the date of the event
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.user.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_event_date: str = message.content
@@ -130,13 +144,13 @@ class Events(commands.Cog):
             value="Please type the minimum ilvl required to participate to the event. (Use 'None' if not applicable)",
             inline=False,
         )
-        await original_message.edit(embed=event_embed)
+        await interaction.response.edit_message(embed=event_embed)
 
         # Get the minimum ilvl required
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.user.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_min_ilvl = message.content
@@ -157,13 +171,13 @@ class Events(commands.Cog):
             value="Please type the minimum level required to participate to the event. (Use 'None' if not applicable)",
             inline=False,
         )
-        await original_message.edit(embed=event_embed)
+        await interaction.response.edit_message(embed=event_embed)
 
         # Get the minimum level required
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.user.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_min_level = message.content
@@ -184,13 +198,13 @@ class Events(commands.Cog):
             value="Please type the maximum number of participants allowed to participate to the event. (Use 'None' if not applicable)",
             inline=False,
         )
-        await original_message.edit(embed=event_embed)
+        await interaction.response.edit_message(embed=event_embed)
 
         # Get the maximum number of participants
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == ctx.author.id
-            and m.channel.id == ctx.channel.id,
+            check=lambda m: m.author.id == interaction.author.id
+            and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_max_participants = message.content
@@ -208,8 +222,8 @@ class Events(commands.Cog):
         )
 
         # Create the event
-        # Create a list of requirements List[Requirement]
-        requirements: List[Requirement] = []
+        # Create a list of requirements list[Requirement]
+        requirements: list[Requirement] = []
         if min_ilvl is not None:
             requirements.append(ILVLRequirement(min_ilvl))
         if min_level is not None:
@@ -218,10 +232,15 @@ class Events(commands.Cog):
             requirements.append(ParticipantsRequirement(max_participants))
 
         event = Event(
-            event_name, event_description, event_date, requirements, ctx.author
+            event_name, event_description, event_date, requirements, interaction.author
         )
 
-        original_message.delete()
-        message = await ctx.send(f"{e.LOADING} Creating event...")
+        interaction.delete_original_response()
+        message = await interaction.send(f"{emojis.LOADING} Creating event...")
         # await event_api.create_event(event)
-        await message.edit(content=f"{e.CHECK} Event created!", embed=event.get_embed())
+        await message.edit(content=f"{emojis.CHECK} Event created!", embed=event.get_embed())
+
+
+async def setup(bot: Bot):
+    await bot.add_cog(Events(bot))
+    util.logger.info("Events cog loaded")

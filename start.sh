@@ -8,7 +8,7 @@ if [ ! -d "logs" ]; then
 fi
 
 # Save the logs with today's date up to seconds precision
-nohup docker logs maplebot >> "logs/$(date +%Y-%m-%d_%H-%M-%S).txt"
+# nohup docker logs maplebot >> "logs/$(date +%Y-%m-%d_%H-%M-%S).txt"
 
 # Stop and delete the container
 docker stop maplebot

@@ -14,7 +14,7 @@ WS_HOST = ""
 WS_PORT = 0
 
 # Universalis
-UNIVERSALIS_BASE_URL = "https://universalis.app/api"
+UNIVERSALIS_BASE_URL = "https://universalis.app/api/v2"
 
 # xivapi
 XIVAPI_BASE_URL = "https://xivapi.com"

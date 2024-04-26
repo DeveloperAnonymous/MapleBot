@@ -7,8 +7,7 @@ from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
 
 import configs
-from maplebot import emojis as e
-from maplebot import util
+from maplebot import Bot, emojis, util
 from maplebot.api.universalis import universalis_api
 from maplebot.api.universalis.models.item import UniversalisItem
 from maplebot.api.xiv import xiv_api
@@ -29,7 +28,7 @@ class MarketConverter(commands.Converter):
 
 
 class Tracking(commands.Cog):
-    @commands.command()
+    # @commands.command()
     async def track(self, ctx: Context, item_name: str):
         """
         Search for your item on https://universalis.app
@@ -39,14 +38,15 @@ class Tracking(commands.Cog):
         Example: https://universalis.app/market/29497
         item id would be "29497"
         """
-
         try:
             xivapi_item = await xiv_api.get_item_by_name(item_name)
             await ctx.send(f"Tracking **{xivapi_item.name}**")
         except ClientResponseError as err:
             if err.status == 404:
-                raise MarketAlertException(ctx.channel,
-                                           "Requested item id was not found. Make sure you have a valid id")
+                raise MarketAlertException(
+                    ctx.channel,
+                    "Requested item id was not found. Make sure you have a valid id",
+                )
             else:
                 await ctx.send(err.message)
 
@@ -54,46 +54,117 @@ class Tracking(commands.Cog):
     async def market(self, ctx: Context, *, content: MarketConverter):
         """
         Gives you the current market price of an item.
+
+        By default, this searches for the item in the Aether data center.
+
+        Example:
+        !market Tsai tou Vounou
+        !market Crystal Tsai tou Vounou
         """
 
         world, item_name = content
-        if world is not None and not any(world.lower() == x.lower() for x in configs.SERVERS.keys()):
-            raise MarketAlertException(ctx.channel, "Please specify a valid world from this selection:\n" + ", ".join(
-                configs.SERVERS.keys()))
+        if world is not None and not any(
+            world.lower() == x.lower() for x in configs.SERVERS.keys()
+        ):
+            raise MarketAlertException(
+                ctx.channel,
+                "Please specify a valid world from this selection:\n"
+                + ", ".join(configs.SERVERS.keys()),
+            )
 
-        message = await ctx.send(f"{e.LOADING} Searching for item...")
+        message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
             xivapi_item = await xiv_api.get_item_by_name(item_name)
 
             if xivapi_item is None:
                 return await message.edit(
-                    content=f"{e.BANGBANG} Requested item \"{item_name}\" was not found. Make sure you have a valid item name")
+                    content=f'{emojis.BANGBANG} Requested item "{item_name}" was not found. Make sure you have a valid item name'
+                )
 
-            await message.edit(content=f"{e.LOADING} Searching for **{xivapi_item.name}**")
+            await message.edit(
+                content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
+            )
 
-            universalis_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, world)
+            universalis_nq_item: UniversalisItem = await universalis_api.get_item(
+                xivapi_item.id, False, world
+            )
 
-            sorted_listings = sorted(universalis_item.listings,
-                                     key=lambda listing: (listing.price_per_unit, -listing.quantity))
+            universalis_hq_item: UniversalisItem = await universalis_api.get_item(
+                xivapi_item.id, True, world
+            )
 
-            embed = discord.Embed(title=f"{xivapi_item.name}", url=f"https://universalis.app/market/{xivapi_item.id}",
-                                  color=0x00ff00)
+            sorted_nq_listings = sorted(
+                universalis_nq_item.listings,
+                key=lambda listing: (listing.price_per_unit, -listing.quantity),
+            )
+
+            sorted_hq_listings = sorted(
+                universalis_hq_item.listings,
+                key=lambda listing: (listing.price_per_unit, -listing.quantity),
+            )
+
+            embed = discord.Embed(
+                title=f"{xivapi_item.name}",
+                url=f"https://universalis.app/market/{xivapi_item.id}",
+                color=0x00FF00,
+                type="rich",
+            )
             embed.set_thumbnail(url=xivapi_item.icon_url)
 
-            embed.add_field(name="Top 10 Listings:", value="```\n" + "\n".join(
-                [f"{listing.world_name}: {listing.quantity}x {listing.price_per_unit}g ({listing.total}g)" for listing
-                 in sorted_listings[:10]]
-                + ["```"]
-            ), inline=False)
-            embed.add_field(name="Minimum NQ price:", value=f"{universalis_item.min_price_nq}g")
-            embed.add_field(name="Minimum HQ price:", value=f"{universalis_item.min_price_hq}g")
-            embed.set_footer(text=f"Last updated: {universalis_item.last_updated.strftime('%Y-%m-%d %H:%M:%S')}")
+            if len(sorted_nq_listings) > 0:
+                embed.add_field(
+                    name="Top 10 NQ Listings:",
+                    value="```\n"
+                    + "\n".join(
+                        [
+                            f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                            for listing in sorted_nq_listings[:10]
+                            if not listing.hq
+                        ]
+                        + ["```"]
+                    ),
+                    inline=False,
+                )
 
-            await message.edit(content=f"Results for **{xivapi_item.name}**", embed=embed)
+            if len(sorted_hq_listings) > 0:
+                embed.add_field(
+                    name="Top 10 HQ Listings:",
+                    value="```\n"
+                    + "\n".join(
+                        [
+                            f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                            for listing in sorted_hq_listings[:10]
+                            if listing.hq
+                        ]
+                        + ["```"]
+                    ),
+                    inline=False,
+                )
+
+            embed.add_field(
+                name="Minimum NQ price:",
+                value=f"{universalis_nq_item.min_price_nq:,}g",
+                inline=True,
+            )
+            embed.add_field(
+                name="Minimum HQ price:",
+                value=f"{universalis_hq_item.min_price_hq:,}g",
+                inline=True,
+            )
+
+            embed.set_footer(
+                text=f"Last review time: {universalis_nq_item.last_updated.strftime('%d-%m-%Y %H:%M:%S')}"
+            )
+
+            await message.edit(
+                content=f"Results for **{xivapi_item.name}**", embed=embed
+            )
         except ClientResponseError as err:
             if err.status == 404:
-                raise MarketAlertException(ctx.channel,
-                                           "Requested item id was not found. Make sure you have a valid id")
+                raise MarketAlertException(
+                    ctx.channel,
+                    "Requested item id was not found. Make sure you have a valid id",
+                )
             else:
                 await message.edit(content=err.message)
 
@@ -105,7 +176,14 @@ class Tracking(commands.Cog):
 
                 await channel.send(error.get_message())
             except discord.Forbidden:
-                util.logging.warning(f"Unable to send Exception message, \n{error.message}")
+                util.logging.warning(
+                    f"Unable to send Exception message, \n{error.message}"
+                )
 
-        await ctx.message.add_reaction(e.QUESTION)
+        await ctx.message.add_reaction(emojis.QUESTION)
         raise error
+
+
+async def setup(bot: Bot):
+    await bot.add_cog(Tracking())
+    util.logger.info("Tracking cog loaded")
