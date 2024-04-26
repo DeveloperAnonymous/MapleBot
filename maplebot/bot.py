@@ -49,7 +49,7 @@ class Bot(commands.Bot):
         if not self.change_status.is_running():
             self.change_status.start()
 
-    @tasks.loop(seconds=60)
+    @tasks.loop(seconds=60*5)
     async def change_status(self):
         await self.change_presence(activity=next(self.status_generator))
 
