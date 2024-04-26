@@ -4,7 +4,7 @@ PREFIX = "ma!"
 
 # Postgresql Database
 PG_HOST = ""
-PG_DB_NAME = ""
+PG_DB = ""
 PG_USER = ""
 PG_PWD = ""
 PG_PORT = 0
