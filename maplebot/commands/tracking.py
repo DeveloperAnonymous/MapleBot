@@ -153,7 +153,7 @@ class Tracking(commands.Cog):
             )
 
             embed.set_footer(
-                text=f"Last review time: {universalis_nq_item.last_updated.strftime('%d-%m-%Y %H:%M:%S')}"
+                text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}"
             )
 
             await message.edit(
