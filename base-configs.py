@@ -50,6 +50,12 @@ SERVERS = {
         "Mateus",
         "Zalera"
     ],
+    "Dynamis": [
+        "Halicarnassus",
+        "Maduin",
+        "Marilith",
+        "Seraph"
+    ],
     "Elemental": [
         "Aegis",
         "Atomos",
@@ -95,6 +101,23 @@ SERVERS = {
         "Pandaemonium",
         "Shinryu",
         "Titan"
+    ],
+    "Materia": [
+        "Bismark",
+        "Ravana",
+        "Sephirot",
+        "Sophia",
+        "Zurvan"
+    ],
+    "Meteor": [  
+        "Belias",
+        "Mandragora",
+        "Ramuh",
+        "Shinryu",
+        "Unicorn",
+        "Valefor",
+        "Yojimbo",
+        "Zeromus"
     ],
     "Primal": [
         "Behemoth",
