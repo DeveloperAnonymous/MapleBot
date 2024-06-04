@@ -1,3 +1,5 @@
+"""Commands module for moderation."""
+
 import asyncio
 import platform
 

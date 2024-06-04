@@ -1,10 +1,11 @@
+"""Listen for the prayer and forgive the sinner."""
+
 from difflib import SequenceMatcher
 
 import discord
 from discord.ext import commands
 
-from maplebot import Bot
-from maplebot import util
+from maplebot import Bot, util
 
 PRAYER = "Excuse me father, for I have sinned."
 

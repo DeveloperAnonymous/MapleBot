@@ -1,3 +1,8 @@
+"""
+This module is the main entry point of the bot.
+It creates the bot object and runs it.
+"""
+
 import configs
 from maplebot import Bot
 

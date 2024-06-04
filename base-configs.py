@@ -1,6 +1,7 @@
 # Discord
 TOKEN = ""
 PREFIX = "ma!"
+LOG_CHANNEL = 0
 
 # Postgresql Database
 PG_HOST = ""

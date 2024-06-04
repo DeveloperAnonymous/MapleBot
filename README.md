@@ -4,8 +4,8 @@ A discord bot for Final Fantasy XIV market
 
 ## Requirements
 
-- Python 3.10+
-- MongoDB 4.4
+- Python 3.12+
+- PostgreSQL 16+
 
 ## How to contribute
 

@@ -1,4 +1,4 @@
-from types import NoneType
+"""Commands module for tracking items on the market."""
 
 import discord
 from aiohttp.client_exceptions import ClientResponseError
@@ -15,12 +15,12 @@ from maplebot.util import MarketAlertException
 
 
 class MarketConverter(commands.Converter):
-    async def convert(self, ctx: Context, argument: str) -> tuple[str | NoneType, str]:
+    async def convert(self, ctx: Context, argument: str) -> tuple[str | None, str]:
         args = argument.split(" ")
-        world = args[0]
+        world = args[0].lower()
         item_name = " ".join(args[1:]) if len(args) > 1 else None
 
-        if not any(world.lower() == x.lower() for x in configs.SERVERS.keys()):
+        if not any(world == x.lower() for x in configs.SERVERS):
             item_name = " ".join(args)
             world = None
 
@@ -28,6 +28,10 @@ class MarketConverter(commands.Converter):
 
 
 class Tracking(commands.Cog):
+    """Commands for tracking items on the market."""
+    def __init__(self, bot: Bot):
+        self.bot = bot
+
     # @commands.command()
     async def track(self, ctx: Context, item_name: str):
         """
@@ -46,7 +50,7 @@ class Tracking(commands.Cog):
                 raise MarketAlertException(
                     ctx.channel,
                     "Requested item id was not found. Make sure you have a valid id",
-                )
+                ) from err
             else:
                 await ctx.send(err.message)
 
@@ -56,6 +60,11 @@ class Tracking(commands.Cog):
         Gives you the current market price of an item.
 
         By default, this searches for the item in the Aether data center.
+        If you have a preferred data center, you can set it with `ma!datacenter <datacenter>`.
+
+        Syntax:
+        !market <item_name>
+        !market <datacenter> <item_name>
 
         Example:
         !market Tsai tou Vounou
@@ -64,13 +73,30 @@ class Tracking(commands.Cog):
 
         world, item_name = content
         if world is not None and not any(
-            world.lower() == x.lower() for x in configs.SERVERS.keys()
+            world.lower() == x.lower() for x in configs.SERVERS
         ):
             raise MarketAlertException(
                 ctx.channel,
-                "Please specify a valid world from this selection:\n"
-                + ", ".join(configs.SERVERS.keys()),
+                "Please specify a valid world from this selection:\n- "
+                + "\n- ".join(sorted(configs.SERVERS.keys()))
             )
+        
+        if world is None:
+            # Fetch the user's default datacenter, or keep world as none
+            async with self.bot.db_pool.acquire() as connection:
+                async with connection.cursor() as cursor:
+                    await cursor.execute(
+                        """
+                        SELECT datacenter
+                        FROM user_settings
+                        WHERE discord_id = %s
+                        """,
+                        (ctx.author.id,),
+                    )
+
+                    datacenter = await cursor.fetchone()
+                    if datacenter is not None:
+                        world = datacenter[0]
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
@@ -164,7 +190,7 @@ class Tracking(commands.Cog):
                 raise MarketAlertException(
                     ctx.channel,
                     "Requested item id was not found. Make sure you have a valid id",
-                )
+                ) from err
             else:
                 await message.edit(content=err.message)
 
@@ -185,5 +211,5 @@ class Tracking(commands.Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(Tracking())
+    await bot.add_cog(Tracking(bot))
     util.logger.info("Tracking cog loaded")
