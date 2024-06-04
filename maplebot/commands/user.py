@@ -90,6 +90,43 @@ class User(commands.Cog):
         await ctx.message.add_reaction(emojis.QUESTION)
         raise error
 
+    @commands.command()
+    async def forgetme(self, ctx: Context, confirm: Optional[bool]):
+        """
+        This will remove all the data linked to your discord account from our database.
+
+        Syntax:
+        ma!forgetme (confirm)
+
+        Example:
+        ma!forgetme
+        ma!forgetme True
+        ma!forgetme yes
+        ma!forgetme y
+        ma!forgetme 1
+
+        Note: This action is irreversible.
+        """
+        if confirm is None:
+            return await ctx.send(
+                "This actioon is **irreversible** and will remove all the data linked to your discord account from our database. "
+                + "Are you sure you want to proceed? Type `ma!forgetme True` to confirm."
+            )
+
+        if not confirm:
+            return await ctx.send("Understood, I won't remove your data")
+
+        message = await ctx.send("Removing all your data from our database...")
+
+        async with self.bot.db_pool.acquire() as connection:
+            async with connection.cursor() as cursor:
+                await cursor.execute(
+                    "DELETE FROM user_settings WHERE discord_id = %(discord_id)s",
+                    {"discord_id": ctx.author.id},
+                )
+
+        await message.edit(content="All your data has been removed from our database.")
+
 
 async def setup(bot: Bot):
     """Load the User cog."""
