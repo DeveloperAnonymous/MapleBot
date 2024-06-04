@@ -94,3 +94,4 @@ class User(commands.Cog):
 async def setup(bot: Bot):
     """Load the User cog."""
     await bot.add_cog(User(bot))
+    util.logger.info("User cog loaded")
