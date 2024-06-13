@@ -79,6 +79,7 @@ class Bot(commands.Bot):
         """Event that triggers when the bot joins a guild."""
         if not guild.chunked:
             await guild.chunk()
+        util.logger.info(f"Joined guild {guild.name} with {guild.member_count} members")
         await self.logging_channel.send(f"Joined guild {guild.name} with {guild.member_count} members")
 
     async def setup_db(self) -> None:
