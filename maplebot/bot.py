@@ -38,7 +38,7 @@ class Bot(commands.Bot):
         )
 
     async def setup_hook(self) -> None:
-        await self.setup_db()
+        # await self.setup_db()
 
         self.logging_channel = await self.fetch_channel(configs.LOG_CHANNEL)
 
@@ -79,8 +79,13 @@ class Bot(commands.Bot):
         """Event that triggers when the bot joins a guild."""
         if not guild.chunked:
             await guild.chunk()
-        util.logger.info(f"Joined guild {guild.name} with {guild.member_count} members")
-        await self.logging_channel.send(f"Joined guild {guild.name} with {guild.member_count} members")
+        util.logger.info(f"Joined guild **{guild.name}** with {guild.member_count} members")
+        await self.logging_channel.send(f"Joined guild **{guild.name}** with {guild.member_count} members")
+
+    async def on_guild_remove(self, guild: discord.Guild) -> None:
+        """Event that triggers when the bot leaves a guild."""
+        util.logger.info(f"Left guild **{guild.name}** with {guild.member_count} members")
+        await self.logging_channel.send(f"Left guild **{guild.name}** with {guild.member_count} members")
 
     async def setup_db(self) -> None:
         """Set up the database connection pool and create tables if they don't exist."""

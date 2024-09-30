@@ -15,12 +15,12 @@ from maplebot.util import MarketAlertException
 
 
 class MarketConverter(commands.Converter):
-    async def convert(self, ctx: Context, argument: str) -> tuple[str | None, str]:
+    async def convert(self, _: Context, argument: str) -> tuple[str | None, str]:
         args = argument.split(" ")
         world = args[0].lower()
         item_name = " ".join(args[1:]) if len(args) > 1 else None
 
-        if not any(world == x.lower() for x in configs.SERVERS):
+        if not any(world == x.lower() for x in configs.DATACENTERS):
             item_name = " ".join(args)
             world = None
 
@@ -73,12 +73,12 @@ class Tracking(commands.Cog):
 
         world, item_name = content
         if world is not None and not any(
-            world.lower() == x.lower() for x in configs.SERVERS
+            world.lower() == x.lower() for x in configs.DATACENTERS
         ):
             raise MarketAlertException(
                 ctx.channel,
                 "Please specify a valid world from this selection:\n- "
-                + "\n- ".join(sorted(configs.SERVERS.keys()))
+                + "\n- ".join(sorted(configs.DATACENTERS.keys()))
             )
         
         if world is None:
@@ -107,84 +107,6 @@ class Tracking(commands.Cog):
                     content=f'{emojis.BANGBANG} Requested item "{item_name}" was not found. Make sure you have a valid item name'
                 )
 
-            await message.edit(
-                content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
-            )
-
-            universalis_nq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, False, world
-            )
-
-            universalis_hq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, True, world
-            )
-
-            sorted_nq_listings = sorted(
-                universalis_nq_item.listings,
-                key=lambda listing: (listing.price_per_unit, -listing.quantity),
-            )
-
-            sorted_hq_listings = sorted(
-                universalis_hq_item.listings,
-                key=lambda listing: (listing.price_per_unit, -listing.quantity),
-            )
-
-            embed = discord.Embed(
-                title=f"{xivapi_item.name}",
-                url=f"https://universalis.app/market/{xivapi_item.id}",
-                color=0x00FF00,
-                type="rich",
-            )
-            embed.set_thumbnail(url=xivapi_item.icon_url)
-
-            if len(sorted_nq_listings) > 0:
-                embed.add_field(
-                    name="Top 10 NQ Listings:",
-                    value="```\n"
-                    + "\n".join(
-                        [
-                            f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
-                            for listing in sorted_nq_listings[:10]
-                            if not listing.hq
-                        ]
-                        + ["```"]
-                    ),
-                    inline=False,
-                )
-
-            if len(sorted_hq_listings) > 0:
-                embed.add_field(
-                    name="Top 10 HQ Listings:",
-                    value="```\n"
-                    + "\n".join(
-                        [
-                            f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
-                            for listing in sorted_hq_listings[:10]
-                            if listing.hq
-                        ]
-                        + ["```"]
-                    ),
-                    inline=False,
-                )
-
-            embed.add_field(
-                name="Minimum NQ price:",
-                value=f"{universalis_nq_item.min_price_nq:,}g",
-                inline=True,
-            )
-            embed.add_field(
-                name="Minimum HQ price:",
-                value=f"{universalis_hq_item.min_price_hq:,}g",
-                inline=True,
-            )
-
-            embed.set_footer(
-                text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}"
-            )
-
-            await message.edit(
-                content=f"Results for **{xivapi_item.name}**", embed=embed
-            )
         except ClientResponseError as err:
             if err.status == 404:
                 raise MarketAlertException(
@@ -193,6 +115,88 @@ class Tracking(commands.Cog):
                 ) from err
             else:
                 await message.edit(content=err.message)
+
+        await message.edit(
+            content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
+        )
+
+        try:
+            universalis_nq_item: UniversalisItem = await universalis_api.get_item(
+                xivapi_item.id, False, world
+            )
+
+            universalis_hq_item: UniversalisItem = await universalis_api.get_item(
+                xivapi_item.id, True, world
+            )
+        except ClientResponseError as err:
+            await message.edit(content=f"A problem with Universalis happened! **{err.message}**")
+
+        sorted_nq_listings = sorted(
+            universalis_nq_item.listings,
+            key=lambda listing: (listing.price_per_unit, -listing.quantity),
+        )
+
+        sorted_hq_listings = sorted(
+            universalis_hq_item.listings,
+            key=lambda listing: (listing.price_per_unit, -listing.quantity),
+        )
+
+        embed = discord.Embed(
+            title=f"{xivapi_item.name}",
+            url=f"https://universalis.app/market/{xivapi_item.id}",
+            color=0x00FF00,
+            type="rich",
+        )
+        embed.set_thumbnail(url=xivapi_item.icon_url)
+
+        if len(sorted_nq_listings) > 0:
+            embed.add_field(
+                name="Top 10 NQ Listings:",
+                value="```\n"
+                + "\n".join(
+                    [
+                        f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                        for listing in sorted_nq_listings[:10]
+                        if not listing.hq
+                    ]
+                    + ["```"]
+                ),
+                inline=False,
+            )
+
+        if len(sorted_hq_listings) > 0:
+            embed.add_field(
+                name="Top 10 HQ Listings:",
+                value="```\n"
+                + "\n".join(
+                    [
+                        f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                        for listing in sorted_hq_listings[:10]
+                        if listing.hq
+                    ]
+                    + ["```"]
+                ),
+                inline=False,
+            )
+
+        embed.add_field(
+            name="Minimum NQ price:",
+            value=f"{universalis_nq_item.min_price_nq:,}g",
+            inline=True,
+        )
+        embed.add_field(
+            name="Minimum HQ price:",
+            value=f"{universalis_hq_item.min_price_hq:,}g",
+            inline=True,
+        )
+
+        embed.set_footer(
+            text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}"
+        )
+
+        await message.edit(
+            content=f"Results for **{xivapi_item.name}**", embed=embed
+        )
 
     async def cog_command_error(self, ctx: Context, error):
         error = error.original if isinstance(error, CommandInvokeError) else error

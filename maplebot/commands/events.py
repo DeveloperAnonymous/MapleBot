@@ -1,7 +1,7 @@
 import datetime
 
 import discord
-from dateutil import tz
+import pytz
 from discord import app_commands
 from discord.ext import commands
 
@@ -10,12 +10,8 @@ from maplebot import emojis as emojis
 from maplebot import util
 from maplebot.commands.modals.event import CreateEventModal
 from maplebot.event import Event
-from maplebot.requirement import (
-    ILVLRequirement,
-    LevelRequirement,
-    ParticipantsRequirement,
-    Requirement,
-)
+from maplebot.requirement import (ILVLRequirement, LevelRequirement,
+                                  ParticipantsRequirement, Requirement)
 
 
 @app_commands.guild_only()
@@ -25,26 +21,80 @@ class Events(
     def __init__(self, bot: Bot):
         self.bot = bot
 
+    async def timezones_autocomplete(
+        self, interaction: discord.Interaction, input: str
+    ):
+        """
+        Autocomplete timezones
+
+        Fetches the timezones from the dateutil library and returns them as choices
+        """
+        timezones = sorted(pytz.all_timezones_set)
+
+        autocomplete = [
+            app_commands.Choice(name=timezone, value=timezone)
+            for timezone in timezones
+            if not input or str(timezone).lower().startswith(input.lower())
+        ][:25]
+
+        if len(autocomplete) == 0:
+            # We do a broader search if we didn't find any results
+            autocomplete = [
+                app_commands.Choice(name=timezone, value=timezone)
+                for timezone in timezones
+                if not input or input.lower() in str(timezone).lower()
+            ][:25]
+
+        return autocomplete
+
     @app_commands.command(name="create", description="Create a new event")
+    @app_commands.autocomplete(timezone=timezones_autocomplete)
     async def create(
         self,
-        interaction: discord.Interaction
+        interaction: discord.Interaction,
+        title: str,
+        description: str,
+        date: str,
+        time: str,
+        timezone: str,
+        min_ilvl: int = None,
+        min_level: int = None,
+        max_participants: int = None,
     ):
         """
         Create a new event
+
+        Parameters
+        ----------
+        title: str
+            The title of the event
+        description: str
+            The description of the event
+        date: str
+            The date of the event (DD/MM/YYYY)
+        time: str
+            The time of the event (HH:mm)
+        timezone: str
+            The timezone of the event (Continent/City, e.g. America/Montreal)
+        min_ilvl: int
+            The minimum ilvl required to participate to the event
+        min_level: int
+            The minimum level required to participate to the event
+        max_participants: int
+            The maximum number of participants allowed to participate to the event
         """
-        modal = CreateEventModal()
-        await interaction.response.send_modal(modal)
-        # await interaction.response.send_message(
-        #     f"""Creating event with the following parameters:
-        #                                   **Title:** {title}
-        #                                   **Description:** {description}
-        #                                   **Date:** {date}
-        #                                   **Minimum ilvl:** {min_ilvl}
-        #                                   **Minimum level:** {min_level}
-        #                                   **Maximum participants:** {max_participants}
-        #                                 """
-        # )
+        await interaction.response.send_message(
+            f"""Creating event with the following parameters:
+                                          **Title:** {title}
+                                          **Description:** {description}
+                                          **Date:** {date}
+                                          **Time:** {time}
+                                          **Timezone:** {timezone}
+                                          **Minimum ilvl:** {min_ilvl}
+                                          **Minimum level:** {min_level}
+                                          **Maximum participants:** {max_participants}
+                                        """
+        )
 
     async def old_create(self, interaction: discord.Interaction):
         """Create a new event"""
@@ -238,9 +288,12 @@ class Events(
         interaction.delete_original_response()
         message = await interaction.send(f"{emojis.LOADING} Creating event...")
         # await event_api.create_event(event)
-        await message.edit(content=f"{emojis.CHECK} Event created!", embed=event.get_embed())
+        await message.edit(
+            content=f"{emojis.CHECK} Event created!", embed=event.get_embed()
+        )
 
 
 async def setup(bot: Bot):
+    return
     await bot.add_cog(Events(bot))
     util.logger.info("Events cog loaded")

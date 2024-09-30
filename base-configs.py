@@ -22,7 +22,7 @@ XIVAPI_BASE_URL = "https://xivapi.com"
 XIVAPI_KEY = ""
 
 # FF XIV
-SERVERS = {
+DATACENTERS = {
     "Aether": [
         "Adamantoise",
         "Cactuar",

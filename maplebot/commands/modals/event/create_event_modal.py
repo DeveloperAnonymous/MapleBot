@@ -23,7 +23,7 @@ class CreateEventModal(ui.Modal, title="Create a new event (1/2)"):
         style=discord.TextStyle.short,
         max_length=10,
     )
-    # time = ui.Select(
+    # event_time = ui.Select(
     #     placeholder="Time",
     #     options=[
     #         discord.SelectOption(
@@ -32,6 +32,13 @@ class CreateEventModal(ui.Modal, title="Create a new event (1/2)"):
     #             default=hour == 0,
     #         )
     #         for hour in range(0, 24)
+    #     ],
+    # )
+    # event_privacy = ui.Select(
+    #     placeholder="Privacy setting",
+    #     options=[
+    #         discord.SelectOption(label="Public", value="public"),
+    #         discord.SelectOption(label="Server only", value="private", default=True),
     #     ],
     # )
     # min_level = ui.TextInput(
@@ -59,22 +66,15 @@ class CreateEventModal(ui.Modal, title="Create a new event (1/2)"):
 
     async def on_submit(self, interaction: discord.Interaction) -> None:
         """Handle the submission of the modal"""
-        await interaction.response.send_modal(__CreateEventDetailsModal(self))
-        # await interaction.response.send_message(
-        #     f"""Creating event with the following parameters:
-        #                               **Title:** {self.event_title}
-        #                               **Description:** {self.event_description}
-        #                               **Date:** {self.event_date}
-        #                             """
-        # )
+        await interaction.response.send_modal(_CreateEventDetailsModal(self))
 
 
-class __CreateEventDetailsModal(ui.Modal, title="Create a new event (2/2)"):
-    something = ui.TextInput(
-        label="Something",
-        placeholder="Something",
+class _CreateEventDetailsModal(ui.Modal, title="Create a new event (2/2)"):
+    min_ilvl = ui.TextInput(
+        label="Minimum ilvl",
+        placeholder="Minimum ilvl required",
         style=discord.TextStyle.short,
-        max_length=32,
+        required=False
     )
 
     def __init__(self, parent: CreateEventModal):
@@ -87,6 +87,6 @@ class __CreateEventDetailsModal(ui.Modal, title="Create a new event (2/2)"):
                                   **Title:** {self.parent.event_title}
                                   **Description:** {self.parent.event_description}
                                   **Date:** {self.parent.event_date}
-                                  **Something:** {self.something}
+                                  **Min ILevel:** {self.min_ilvl}
                                 """
         )

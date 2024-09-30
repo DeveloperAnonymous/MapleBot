@@ -46,7 +46,7 @@ class User(commands.Cog):
 
             return await ctx.send(f"Your preferred datacenter is set to {result[0]}")
 
-        if not any(datacenter.lower() == x.lower() for x in configs.SERVERS):
+        if not any(datacenter.lower() == x.lower() for x in configs.DATACENTERS):
             raise MarketAlertException(
                 ctx.channel,
                 "Invalid datacenter, please use `ma!datacenters` to see the available datacenters.",
@@ -72,7 +72,7 @@ class User(commands.Cog):
     async def datacenters(self, ctx: Context):
         """List all available datacenters."""
         await ctx.send(
-            "Available datacenters:\n- " + "\n- ".join(sorted(configs.SERVERS.keys()))
+            "Available datacenters:\n- " + "\n- ".join(sorted(configs.DATACENTERS.keys()))
         )
 
     async def cog_command_error(self, ctx: Context, error):
