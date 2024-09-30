@@ -38,7 +38,7 @@ class Bot(commands.Bot):
         )
 
     async def setup_hook(self) -> None:
-        # await self.setup_db()
+        await self.setup_db()
 
         self.logging_channel = await self.fetch_channel(configs.LOG_CHANNEL)
 
