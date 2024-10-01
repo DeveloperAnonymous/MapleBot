@@ -58,8 +58,8 @@ class Bot(commands.Bot):
         """Event that triggers when the bot is ready."""
         print(f"Logged as {self.user.name} #{self.user.id}")
 
-        if not self.change_status.is_running():
-            self.change_status.start()
+        # if not self.change_status.is_running():
+        #     self.change_status.start()
 
     @tasks.loop(seconds=60*5)
     async def change_status(self) -> None:

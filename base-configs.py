@@ -21,6 +21,9 @@ UNIVERSALIS_BASE_URL = "https://universalis.app/api/v2"
 XIVAPI_BASE_URL = "https://xivapi.com"
 XIVAPI_KEY = ""
 
+# saddleback exchange
+SADDLEBAG_BASE_URL = ""
+
 # FF XIV
 DATACENTERS = {
     "Aether": [

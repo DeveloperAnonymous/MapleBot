@@ -27,6 +27,35 @@ class MarketConverter(commands.Converter):
         return world, item_name
 
 
+class SortByConverter(commands.Converter):
+    FILTERS = [
+        "marketValue",
+        "percentChange",
+        "purchaseAmount",
+        "quantitySold",
+        "avg",
+        "median",
+    ]
+
+    async def convert(self, _: Context, argument: str) -> str:
+        if argument.lower() not in self.FILTERS:
+            raise commands.BadArgument(
+                f"Please specify a valid sorting method: {', '.join(self.FILTERS)}"
+            )
+
+        return argument.lower()
+
+
+class WorldConverter(commands.Converter):
+    """Converts a string to a valid world name."""
+
+    async def convert(self, _: Context, argument: str) -> str:
+        servers = [server for _, dc_servers in configs.DATACENTERS.items() for server in dc_servers]
+        print(servers)
+
+        return None
+
+
 class Tracking(commands.Cog):
     """Commands for tracking items on the market."""
     def __init__(self, bot: Bot):
@@ -100,6 +129,8 @@ class Tracking(commands.Cog):
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
+            util.logger.info(item_name)
+            util.logger.info(world)
             xivapi_item = await xiv_api.get_item_by_name(item_name)
 
             if xivapi_item is None:
@@ -111,7 +142,7 @@ class Tracking(commands.Cog):
             if err.status == 404:
                 raise MarketAlertException(
                     ctx.channel,
-                    "Requested item id was not found. Make sure you have a valid id",
+                    "Requested item name was not found. Make sure you have a valid name",
                 ) from err
             else:
                 await message.edit(content=err.message)
@@ -191,12 +222,27 @@ class Tracking(commands.Cog):
         )
 
         embed.set_footer(
-            text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}"
+            text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")} - Powered by [Universalis](https://universalis.app/)"
         )
 
         await message.edit(
             content=f"Results for **{xivapi_item.name}**", embed=embed
         )
+
+    @commands.command()
+    async def saddlebag(self, ctx: Context, item_name: str, time_period: int, sales_amount: int, sorted_by: SortByConverter, world: WorldConverter):
+        """
+        Search for an item on the saddlebag exchange.
+
+        Syntax:
+        !saddlebag <item_name> <time_period> <sales_amount> <sorted_by> (world)
+
+        Example:
+        !saddlebag "Tsai tou Vounou" 7 100 avg
+        """
+
+        await ctx.send("This command is not implemented yet")
+        
 
     async def cog_command_error(self, ctx: Context, error):
         error = error.original if isinstance(error, CommandInvokeError) else error
