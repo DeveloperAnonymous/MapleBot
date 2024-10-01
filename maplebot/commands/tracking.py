@@ -115,6 +115,9 @@ class Tracking(commands.Cog):
                 ) from err
             else:
                 await message.edit(content=err.message)
+        except Exception as err:
+            await message.edit(content="An error occurred while fetching the item")
+            return util.logging.error(f"Error fetching item: {err}")
 
         await message.edit(
             content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
