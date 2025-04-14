@@ -8,9 +8,11 @@ from discord.ext.commands.errors import CommandInvokeError
 
 import configs
 from maplebot import Bot, emojis, util
+from maplebot.api.saddlebag import saddlebag_api
 from maplebot.api.universalis import universalis_api
 from maplebot.api.universalis.models.item import UniversalisItem
 from maplebot.api.xiv import xiv_api
+from maplebot.commands.converters import ServerConverter
 from maplebot.util import MarketAlertException
 
 
@@ -39,77 +41,42 @@ class SortByConverter(commands.Converter):
 
     async def convert(self, _: Context, argument: str) -> str:
         if argument.lower() not in self.FILTERS:
-            raise commands.BadArgument(
-                f"Please specify a valid sorting method: {', '.join(self.FILTERS)}"
-            )
+            raise commands.BadArgument(f"Please specify a valid sorting method: {', '.join(self.FILTERS)}")
 
-        return argument.lower()
-
-
-class WorldConverter(commands.Converter):
-    """Converts a string to a valid world name."""
-
-    async def convert(self, _: Context, argument: str) -> str:
-        servers = [server for _, dc_servers in configs.DATACENTERS.items() for server in dc_servers]
-        print(servers)
-
-        return None
+        return argument
 
 
 class Tracking(commands.Cog):
     """Commands for tracking items on the market."""
+
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    # @commands.command()
-    async def track(self, ctx: Context, item_name: str):
-        """
-        Search for your item on https://universalis.app
-
-        item id will be the numbers after the last slash on the url.
-
-        Example: https://universalis.app/market/29497
-        item id would be "29497"
-        """
-        try:
-            xivapi_item = await xiv_api.get_item_by_name(item_name)
-            await ctx.send(f"Tracking **{xivapi_item.name}**")
-        except ClientResponseError as err:
-            if err.status == 404:
-                raise MarketAlertException(
-                    ctx.channel,
-                    "Requested item id was not found. Make sure you have a valid id",
-                ) from err
-            else:
-                await ctx.send(err.message)
-
     @commands.command()
     async def market(self, ctx: Context, *, content: MarketConverter):
-        """
+        f"""
         Gives you the current market price of an item.
 
         By default, this searches for the item in the Aether data center.
-        If you have a preferred data center, you can set it with `ma!datacenter <datacenter>`.
+        If you have a preferred data center, you can set it with `{configs.PREFIX}datacenter <datacenter>`.
 
         Syntax:
-        !market <item_name>
-        !market <datacenter> <item_name>
+        {configs.PREFIX}market <item_name>
+        {configs.PREFIX}market <datacenter> <item_name>
 
         Example:
-        !market Tsai tou Vounou
-        !market Crystal Tsai tou Vounou
+        {configs.PREFIX}market Tsai tou Vounou
+        {configs.PREFIX}market Crystal Tsai tou Vounou
         """
 
         world, item_name = content
-        if world is not None and not any(
-            world.lower() == x.lower() for x in configs.DATACENTERS
-        ):
+        if world is not None and not any(world.lower() == x.lower() for x in configs.DATACENTERS):
             raise MarketAlertException(
                 ctx.channel,
                 "Please specify a valid world from this selection:\n- "
-                + "\n- ".join(sorted(configs.DATACENTERS.keys()))
+                + "\n- ".join(sorted(configs.DATACENTERS.keys())),
             )
-        
+
         if world is None:
             # Fetch the user's default datacenter, or keep world as none
             async with self.bot.db_pool.acquire() as connection:
@@ -147,18 +114,12 @@ class Tracking(commands.Cog):
             else:
                 await message.edit(content=err.message)
 
-        await message.edit(
-            content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
-        )
+        await message.edit(content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**")
 
         try:
-            universalis_nq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, False, world
-            )
+            universalis_nq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, False, world)
 
-            universalis_hq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, True, world
-            )
+            universalis_hq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, True, world)
         except ClientResponseError as err:
             await message.edit(content=f"A problem with Universalis happened! **{err.message}**")
 
@@ -225,24 +186,67 @@ class Tracking(commands.Cog):
             text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")} - Powered by [Universalis](https://universalis.app/)"
         )
 
-        await message.edit(
-            content=f"Results for **{xivapi_item.name}**", embed=embed
-        )
+        await message.edit(content=f"Results for **{xivapi_item.name}**", embed=embed)
 
     @commands.command()
-    async def saddlebag(self, ctx: Context, item_name: str, time_period: int, sales_amount: int, sorted_by: SortByConverter, world: WorldConverter):
-        """
+    async def saddlebag(
+        self,
+        ctx: Context,
+        time_period: int,
+        sales_amount: int,
+        average_price: int,
+        sorted_by: SortByConverter,
+        server: ServerConverter,
+    ):
+        f"""
         Search for an item on the saddlebag exchange.
 
         Syntax:
-        !saddlebag <item_name> <time_period> <sales_amount> <sorted_by> (world)
+        {configs.PREFIX}saddlebag <time_period> <sales_amount> <average_price> <sorted_by> (server)
+
+        Sorted by options:
+        - marketValue
+        - percentChange
+        - purchaseAmount
+        - quantitySold
+        - avg
+        - median
 
         Example:
-        !saddlebag "Tsai tou Vounou" 7 100 avg
+        {configs.PREFIX}saddlebag 24 35 10 marketValue
+        {configs.PREFIX}saddlebag 24 35 10 marketValue Jenova
         """
 
-        await ctx.send("This command is not implemented yet")
-        
+        if not server:
+            server = "Aether"
+
+        shares = await saddlebag_api.get_marketshares(time_period, sales_amount, sorted_by, server)
+
+        if not shares:
+            raise MarketAlertException(
+                ctx.channel,
+                f"No items found for time period {time_period}, sales amount {sales_amount}, average price {average_price}, sorted by {sorted_by}",
+            )
+
+        embed = discord.Embed(
+            title=f"Market shares for {server}",
+            color=0x00FF00,
+            type="rich",
+        )
+
+        for item in shares:
+            embed.add_field(
+                name=item.name,
+                value=f"Market value: {item.market_value:,}g\n"
+                f"Percent change: {item.percent_change}%\n"
+                f"Purchase amount: {item.purchase_amount:,}g\n"
+                f"Quantity sold: {item.quantity_sold:,}\n"
+                f"Average: {item.avg:,}g\n"
+                f"Median: {item.median:,}g",
+                inline=False,
+            )
+
+        await ctx.send(embed=embed)
 
     async def cog_command_error(self, ctx: Context, error):
         error = error.original if isinstance(error, CommandInvokeError) else error
@@ -252,9 +256,7 @@ class Tracking(commands.Cog):
 
                 await channel.send(error.get_message())
             except discord.Forbidden:
-                util.logging.warning(
-                    f"Unable to send Exception message, \n{error.message}"
-                )
+                util.logging.warning(f"Unable to send Exception message, \n{error.message}")
 
         await ctx.message.add_reaction(emojis.QUESTION)
         raise error

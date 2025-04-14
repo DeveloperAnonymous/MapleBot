@@ -1,7 +1,9 @@
 aiopg
-websockets~=9.1
+websockets
 aiohttp
 discord.py
+audioop-lts
 pyxivapi~=0.5.1
 python-dateutil
 pytz
+guess-language

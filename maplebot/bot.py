@@ -14,6 +14,7 @@ from maplebot import util
 
 class Bot(commands.Bot):
     """Main bot class for MapleBot."""
+
     def __init__(self, command_prefix, **options):
         super().__init__(command_prefix, intents=discord.Intents.all(), **options)
         self.synced = False
@@ -26,9 +27,7 @@ class Bot(commands.Bot):
 
         self.status_generator = iter(
             [
-                discord.Activity(
-                    type=discord.ActivityType.watching, name="Maple Syrup"
-                ),
+                discord.Activity(type=discord.ActivityType.watching, name="Maple Syrup"),
                 discord.Activity(
                     type=discord.ActivityType.playing,
                     name="Maple Syrup Drinking Simulator",
@@ -61,7 +60,7 @@ class Bot(commands.Bot):
         # if not self.change_status.is_running():
         #     self.change_status.start()
 
-    @tasks.loop(seconds=60*5)
+    @tasks.loop(seconds=60 * 5)
     async def change_status(self) -> None:
         """Change the bot's status every 5 minutes."""
         await self.change_presence(activity=next(self.status_generator))
@@ -69,9 +68,7 @@ class Bot(commands.Bot):
     @change_status.error
     async def change_status_error(self, _) -> None:
         """Error handler for change_status task."""
-        util.logger.error(
-            "Something went wrong while changing status, restarting loop in 5 seconds..."
-        )
+        util.logger.error("Something went wrong while changing status, restarting loop in 5 seconds...")
         await asyncio.sleep(5)
         self.change_status.start()
 
@@ -90,7 +87,12 @@ class Bot(commands.Bot):
     async def setup_db(self) -> None:
         """Set up the database connection pool and create tables if they don't exist."""
         self.db_pool = await aiopg.create_pool(dsn=DatabaseConfig().dsn, minsize=1, maxsize=5)
-        with open("seed.sql", "r") as seed_file:
-            async with self.db_pool.acquire() as connection:
-                async with connection.cursor() as cursor:
-                    await cursor.execute(seed_file.read())
+
+        util.logger.info("Setting up database")
+        for migration in os.listdir("migrations"):
+            if migration.endswith(".sql"):
+                util.logger.info(f"Running migration {migration}")
+                async with self.db_pool.acquire() as connection:
+                    async with connection.cursor() as cursor:
+                        await cursor.execute(open(f"migrations/{migration}").read())
+        util.logger.info("Database setup complete")

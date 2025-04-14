@@ -1,4 +1,4 @@
-from . import SaddlebagItemState
+from .saddlebag_item_state import SaddlebagItemState
 
 
 class SaddlebagItem:
@@ -15,7 +15,7 @@ class SaddlebagItem:
     percent_change: float
     state: SaddlebagItemState
 
-    def __init__(self, data: dict):
+    def __init__(self, **data):
         self.avg = data["avg"]
         self.item_id = data["itemID"]
         self.market_value = data["marketValue"]

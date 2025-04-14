@@ -7,3 +7,4 @@ class SaddlebagItemState(Enum):
     INCREASING = "increasing"
     DECREASING = "decreasing"
     CRASHING = "crashing"
+    OUT_OF_STOCK = "out of stock"

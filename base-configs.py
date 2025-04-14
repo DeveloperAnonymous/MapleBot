@@ -34,16 +34,9 @@ DATACENTERS = {
         "Jenova",
         "Midgarsormr",
         "Sargatanas",
-        "Siren"
+        "Siren",
     ],
-    "Chaos": [
-        "Cerberus",
-        "Louisoix",
-        "Moogle",
-        "Omega",
-        "Ragnarok",
-        "Spriggan"
-    ],
+    "Chaos": ["Cerberus", "Louisoix", "Moogle", "Omega", "Ragnarok", "Spriggan"],
     "Crystal": [
         "Balmung",
         "Brynhildr",
@@ -52,14 +45,9 @@ DATACENTERS = {
         "Goblin",
         "Malboro",
         "Mateus",
-        "Zalera"
+        "Zalera",
     ],
-    "Dynamis": [
-        "Halicarnassus",
-        "Maduin",
-        "Marilith",
-        "Seraph"
-    ],
+    "Dynamis": ["Halicarnassus", "Maduin", "Marilith", "Seraph"],
     "Elemental": [
         "Aegis",
         "Atomos",
@@ -70,7 +58,7 @@ DATACENTERS = {
         "Ramuh",
         "Tonberry",
         "Typhon",
-        "Unicorn"
+        "Unicorn",
     ],
     "Gaia": [
         "Alexander",
@@ -83,16 +71,9 @@ DATACENTERS = {
         "Ultima",
         "Valefor",
         "Yojimbo",
-        "Zeromus"
+        "Zeromus",
     ],
-    "Light": [
-        "Lich",
-        "Odin",
-        "Phoenix",
-        "Shiva",
-        "Twintania",
-        "Zodiark"
-    ],
+    "Light": ["Lich", "Odin", "Phoenix", "Shiva", "Twintania", "Zodiark"],
     "Mana": [
         "Anima",
         "Asura",
@@ -104,16 +85,10 @@ DATACENTERS = {
         "Masamune",
         "Pandaemonium",
         "Shinryu",
-        "Titan"
+        "Titan",
     ],
-    "Materia": [
-        "Bismark",
-        "Ravana",
-        "Sephirot",
-        "Sophia",
-        "Zurvan"
-    ],
-    "Meteor": [  
+    "Materia": ["Bismark", "Ravana", "Sephirot", "Sophia", "Zurvan"],
+    "Meteor": [
         "Belias",
         "Mandragora",
         "Ramuh",
@@ -121,7 +96,7 @@ DATACENTERS = {
         "Unicorn",
         "Valefor",
         "Yojimbo",
-        "Zeromus"
+        "Zeromus",
     ],
     "Primal": [
         "Behemoth",
@@ -131,6 +106,6 @@ DATACENTERS = {
         "Hyperion",
         "Lamia",
         "Leviathan",
-        "Ultros"
-    ]
+        "Ultros",
+    ],
 }

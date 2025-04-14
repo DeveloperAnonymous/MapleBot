@@ -6,8 +6,7 @@ import platform
 import discord
 from discord.ext import commands
 
-from maplebot import Bot
-from maplebot import util
+from maplebot import Bot, util
 
 
 class Moderation(commands.Cog):
