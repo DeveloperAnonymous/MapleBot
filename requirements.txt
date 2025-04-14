@@ -1,7 +1,7 @@
 aiopg
-websockets~=9.1
 aiohttp
 discord.py
 pyxivapi~=0.5.1
 python-dateutil
 pytz
+langdetect

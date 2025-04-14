@@ -18,45 +18,14 @@ WS_PORT = 0
 UNIVERSALIS_BASE_URL = "https://universalis.app/api/v2"
 
 # xivapi
-XIVAPI_BASE_URL = "https://xivapi.com"
-XIVAPI_KEY = ""
+XIVAPI_BASE_URL = "https://beta.xivapi.com/api/1"
 
 # FF XIV
 DATACENTERS = {
-    "Aether": [
-        "Adamantoise",
-        "Cactuar",
-        "Faerie",
-        "Gilgamesh",
-        "Jenova",
-        "Midgarsormr",
-        "Sargatanas",
-        "Siren"
-    ],
-    "Chaos": [
-        "Cerberus",
-        "Louisoix",
-        "Moogle",
-        "Omega",
-        "Ragnarok",
-        "Spriggan"
-    ],
-    "Crystal": [
-        "Balmung",
-        "Brynhildr",
-        "Coeurl",
-        "Diabolos",
-        "Goblin",
-        "Malboro",
-        "Mateus",
-        "Zalera"
-    ],
-    "Dynamis": [
-        "Halicarnassus",
-        "Maduin",
-        "Marilith",
-        "Seraph"
-    ],
+    "Aether": ["Adamantoise", "Cactuar", "Faerie", "Gilgamesh", "Jenova", "Midgarsormr", "Sargatanas", "Siren"],
+    "Chaos": ["Cerberus", "Louisoix", "Moogle", "Omega", "Ragnarok", "Spriggan"],
+    "Crystal": ["Balmung", "Brynhildr", "Coeurl", "Diabolos", "Goblin", "Malboro", "Mateus", "Zalera"],
+    "Dynamis": ["Cuchulainn", "Golen", "Halicarnassus", "Kraken", "Maduin", "Marilith", "Rafflesia", "Seraph"],
     "Elemental": [
         "Aegis",
         "Atomos",
@@ -67,7 +36,7 @@ DATACENTERS = {
         "Ramuh",
         "Tonberry",
         "Typhon",
-        "Unicorn"
+        "Unicorn",
     ],
     "Gaia": [
         "Alexander",
@@ -80,16 +49,9 @@ DATACENTERS = {
         "Ultima",
         "Valefor",
         "Yojimbo",
-        "Zeromus"
+        "Zeromus",
     ],
-    "Light": [
-        "Lich",
-        "Odin",
-        "Phoenix",
-        "Shiva",
-        "Twintania",
-        "Zodiark"
-    ],
+    "Light": ["Lich", "Odin", "Phoenix", "Shiva", "Twintania", "Zodiark"],
     "Mana": [
         "Anima",
         "Asura",
@@ -101,33 +63,9 @@ DATACENTERS = {
         "Masamune",
         "Pandaemonium",
         "Shinryu",
-        "Titan"
+        "Titan",
     ],
-    "Materia": [
-        "Bismark",
-        "Ravana",
-        "Sephirot",
-        "Sophia",
-        "Zurvan"
-    ],
-    "Meteor": [  
-        "Belias",
-        "Mandragora",
-        "Ramuh",
-        "Shinryu",
-        "Unicorn",
-        "Valefor",
-        "Yojimbo",
-        "Zeromus"
-    ],
-    "Primal": [
-        "Behemoth",
-        "Excalibur",
-        "Exodus",
-        "Famfrit",
-        "Hyperion",
-        "Lamia",
-        "Leviathan",
-        "Ultros"
-    ]
+    "Materia": ["Bismark", "Ravana", "Sephirot", "Sophia", "Zurvan"],
+    "Meteor": ["Belias", "Mandragora", "Ramuh", "Shinryu", "Unicorn", "Valefor", "Yojimbo", "Zeromus"],
+    "Primal": ["Behemoth", "Excalibur", "Exodus", "Famfrit", "Hyperion", "Lamia", "Leviathan", "Ultros"],
 }

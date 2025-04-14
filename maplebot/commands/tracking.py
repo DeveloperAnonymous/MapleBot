@@ -5,6 +5,7 @@ from aiohttp.client_exceptions import ClientResponseError
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
+from langdetect import detect
 
 import configs
 from maplebot import Bot, emojis, util
@@ -29,6 +30,7 @@ class MarketConverter(commands.Converter):
 
 class Tracking(commands.Cog):
     """Commands for tracking items on the market."""
+
     def __init__(self, bot: Bot):
         self.bot = bot
 
@@ -72,15 +74,13 @@ class Tracking(commands.Cog):
         """
 
         world, item_name = content
-        if world is not None and not any(
-            world.lower() == x.lower() for x in configs.DATACENTERS
-        ):
+        if world is not None and not any(world.lower() == x.lower() for x in configs.DATACENTERS):
             raise MarketAlertException(
                 ctx.channel,
                 "Please specify a valid world from this selection:\n- "
-                + "\n- ".join(sorted(configs.DATACENTERS.keys()))
+                + "\n- ".join(sorted(configs.DATACENTERS.keys())),
             )
-        
+
         if world is None:
             # Fetch the user's default datacenter, or keep world as none
             async with self.bot.db_pool.acquire() as connection:
@@ -100,7 +100,8 @@ class Tracking(commands.Cog):
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
-            xivapi_item = await xiv_api.get_item_by_name(item_name)
+            language_code = detect(item_name)
+            xivapi_item = await xiv_api.get_item_by_name(item_name, language_code)
 
             if xivapi_item is None:
                 return await message.edit(
@@ -119,18 +120,12 @@ class Tracking(commands.Cog):
             await message.edit(content="An error occurred while fetching the item")
             return util.logging.error(f"Error fetching item: {err}")
 
-        await message.edit(
-            content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**"
-        )
+        await message.edit(content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**")
 
         try:
-            universalis_nq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, False, world
-            )
+            universalis_nq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, False, world)
 
-            universalis_hq_item: UniversalisItem = await universalis_api.get_item(
-                xivapi_item.id, True, world
-            )
+            universalis_hq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, True, world)
         except ClientResponseError as err:
             await message.edit(content=f"A problem with Universalis happened! **{err.message}**")
 
@@ -193,13 +188,9 @@ class Tracking(commands.Cog):
             inline=True,
         )
 
-        embed.set_footer(
-            text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}"
-        )
+        embed.set_footer(text=f"Last review time: {universalis_nq_item.last_updated.strftime("%d/%m/%Y %H:%M:%S")}")
 
-        await message.edit(
-            content=f"Results for **{xivapi_item.name}**", embed=embed
-        )
+        await message.edit(content=f"Results for **{xivapi_item.name}**", embed=embed)
 
     async def cog_command_error(self, ctx: Context, error):
         error = error.original if isinstance(error, CommandInvokeError) else error
@@ -209,9 +200,7 @@ class Tracking(commands.Cog):
 
                 await channel.send(error.get_message())
             except discord.Forbidden:
-                util.logging.warning(
-                    f"Unable to send Exception message, \n{error.message}"
-                )
+                util.logging.warning(f"Unable to send Exception message, \n{error.message}")
 
         await ctx.message.add_reaction(emojis.QUESTION)
         raise error
