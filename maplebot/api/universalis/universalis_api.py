@@ -44,9 +44,7 @@ async def get_item(item_id: int, hq: bool, world: str | None = "Aether") -> Univ
     request_params = f"listings=10&entries=0&statsWithin=0&entriesWithin=0&hq={hq}&fields={request_fields}"
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"{BASE_URL}/{world}/{item_id}?{request_params}"
-        ) as response:
+        async with session.get(f"{BASE_URL}/{world}/{item_id}?{request_params}") as response:
             response.raise_for_status()
 
             data = await response.json()
