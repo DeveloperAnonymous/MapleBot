@@ -5,7 +5,6 @@ from aiohttp.client_exceptions import ClientResponseError
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
-from langdetect import detect
 
 import configs
 from maplebot import Bot, emojis, util
@@ -100,8 +99,7 @@ class Tracking(commands.Cog):
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
-            language_code = detect(item_name)
-            xivapi_item = await xiv_api.get_item_by_name(item_name, language_code)
+            xivapi_item = await xiv_api.get_item_by_name(item_name)
 
             if xivapi_item is None:
                 return await message.edit(

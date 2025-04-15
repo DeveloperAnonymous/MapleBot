@@ -2,14 +2,13 @@ import aiohttp
 from pyxivapi.client import XIVAPIClient
 
 import configs
-from maplebot import util
 from maplebot.api.xiv.models.items import XivApiItem
 
 BASE_URL = configs.XIVAPI_BASE_URL
 client: XIVAPIClient = None
 
 
-async def get_item_by_name(item_name: str, language_code: str) -> XivApiItem | None:
+async def get_item_by_name(item_name: str) -> XivApiItem | None:
     """
     Get an item by its name.
 
@@ -19,7 +18,7 @@ async def get_item_by_name(item_name: str, language_code: str) -> XivApiItem | N
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f'{BASE_URL}/search?sheets=Item&language={language_code}&query=Name~"{item_name}"&fields=Icon,Name,Description'
+            f'{BASE_URL}/search?sheets=Item&query=Singular@ja~"{item_name}" Singular@en~"{item_name}" Singular@de~"{item_name}" Singular@fr~"{item_name}"&fields=Icon,Name,Description'
         ) as response:
             raw_data = await response.json()
 
