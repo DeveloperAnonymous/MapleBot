@@ -107,13 +107,8 @@ class Tracking(commands.Cog):
                 )
 
         except ClientResponseError as err:
-            if err.status == 404:
-                raise MarketAlertException(
-                    ctx.channel,
-                    "Requested item id was not found. Make sure you have a valid id",
-                ) from err
-            else:
-                await message.edit(content=err.message)
+            await message.edit(content=err.message)
+            return util.logging.error(f"Error fetching item: {err}")
         except Exception as err:
             await message.edit(content="An error occurred while fetching the item")
             return util.logging.error(f"Error fetching item: {err}")
