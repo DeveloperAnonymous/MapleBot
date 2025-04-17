@@ -90,16 +90,16 @@ class Tracking(commands.Cog):
                     if result is not None:
                         world_data = World(*result)
 
-        if datacenter == "region":
-            datacenter = world_data.region if world_data else None
-        elif datacenter is None:
-            datacenter = world_data.datacenter if world_data else None
-
-        if datacenter is None:
+        if datacenter is None and (world_data is None or world_data.world is None):
             raise MarketAlertException(
                 ctx.channel,
                 f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
             )
+
+        if datacenter == "region":
+            datacenter = world_data.region
+        elif datacenter is None:
+            datacenter = world_data.datacenter
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
