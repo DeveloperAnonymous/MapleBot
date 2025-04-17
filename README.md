@@ -2,9 +2,13 @@
 
 A discord bot for Final Fantasy XIV market
 
+## Tools
+- [Universalis](https://universalis.app/)
+- [XIV API](https://xivapi.com/)
+
 ## Requirements
 
-- Python 3.12+
+- Python 3.13+
 - PostgreSQL 16+
 
 ## How to contribute

@@ -7,9 +7,9 @@ from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
 
 import configs
-from maplebot import Bot, emojis, util
+from maplebot import Bot, World, emojis, util
 from maplebot.api.universalis import universalis_api
-from maplebot.api.universalis.models.item import UniversalisItem
+from maplebot.api.universalis.models import UniversalisItem, UniversalisItemListing
 from maplebot.api.xiv import xiv_api
 from maplebot.util import MarketAlertException
 
@@ -17,14 +17,14 @@ from maplebot.util import MarketAlertException
 class MarketConverter(commands.Converter):
     async def convert(self, _: Context, argument: str) -> tuple[str | None, str]:
         args = argument.split(" ")
-        world = args[0].lower()
+        datacenter = args[0].lower()
         item_name = " ".join(args[1:]) if len(args) > 1 else None
 
-        if not any(world == x.lower() for x in configs.DATACENTERS):
+        if not any(datacenter == x.lower() for x in util.get_datacenters()) and datacenter != "region":
             item_name = " ".join(args)
-            world = None
+            datacenter = None
 
-        return world, item_name
+        return datacenter, item_name
 
 
 class Tracking(commands.Cog):
@@ -33,69 +33,73 @@ class Tracking(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    # @commands.command()
-    async def track(self, ctx: Context, item_name: str):
-        """
-        Search for your item on https://universalis.app
+    def format_listing_entry(self, listing: UniversalisItemListing, datacenter: str) -> str:
+        """Format a single listing entry."""
+        if datacenter in configs.REGIONS.keys():
+            return f"{util.get_datacenter_for_world(listing.world_name)} - {listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
 
-        item id will be the numbers after the last slash on the url.
+        return f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
 
-        Example: https://universalis.app/market/29497
-        item id would be "29497"
-        """
-        try:
-            xivapi_item = await xiv_api.get_item_by_name(item_name)
-            await ctx.send(f"Tracking **{xivapi_item.name}**")
-        except ClientResponseError as err:
-            if err.status == 404:
-                raise MarketAlertException(
-                    ctx.channel,
-                    "Requested item id was not found. Make sure you have a valid id",
-                ) from err
-            else:
-                await ctx.send(err.message)
+    @commands.command()
+    async def datacenters(self, ctx: Context):
+        """List all available datacenters."""
+        await ctx.send(
+            "Available datacenters:\n- "
+            + "\n- ".join(
+                sorted([datacenter for datacenters in configs.REGIONS.values() for datacenter in datacenters.keys()])
+            )
+        )
 
     @commands.command()
     async def market(self, ctx: Context, *, content: MarketConverter):
-        """
-        Gives you the current market price of an item.
+        f"""
+        Gives you the current market price of the item in your datacenter.
 
-        By default, this searches for the item in the Aether data center.
-        If you have a preferred data center, you can set it with `ma!datacenter <datacenter>`.
+        You can also specify a datacenter to check the price in another datacenter.
+        If you don't specify a datacenter, it will use your preferred world.
+
+        When using `region` as datacenter, it will use the region of your preferred world to check the price.
 
         Syntax:
-        !market <item_name>
-        !market <datacenter> <item_name>
+        {configs.PREFIX}market <item_name>
+        {configs.PREFIX}market <datacenter> <item_name>
 
         Example:
-        !market Tsai tou Vounou
-        !market Crystal Tsai tou Vounou
+        {configs.PREFIX}market Tsai tou Vounou
+        {configs.PREFIX}market Aether Tsai tou Vounou
+
+        {configs.PREFIX}market region Tsai tou Vounou
         """
+        world_data: World = None
 
-        world, item_name = content
-        if world is not None and not any(world.lower() == x.lower() for x in configs.DATACENTERS):
-            raise MarketAlertException(
-                ctx.channel,
-                "Please specify a valid world from this selection:\n- "
-                + "\n- ".join(sorted(configs.DATACENTERS.keys())),
-            )
-
-        if world is None:
+        datacenter, item_name = content
+        if datacenter is None or datacenter == "region":
             # Fetch the user's default datacenter, or keep world as none
             async with self.bot.db_pool.acquire() as connection:
                 async with connection.cursor() as cursor:
                     await cursor.execute(
                         """
-                        SELECT datacenter
+                        SELECT region, datacenter, world
                         FROM user_settings
                         WHERE discord_id = %s
                         """,
                         (ctx.author.id,),
                     )
 
-                    datacenter = await cursor.fetchone()
-                    if datacenter is not None:
-                        world = datacenter[0]
+                    result = await cursor.fetchone()
+                    if result is not None:
+                        world_data = World(*result)
+
+        if datacenter == "region":
+            datacenter = world_data.region if world_data else None
+        elif datacenter is None:
+            datacenter = world_data.datacenter if world_data else None
+
+        if datacenter is None:
+            raise MarketAlertException(
+                ctx.channel,
+                f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
+            )
 
         message = await ctx.send(f"{emojis.LOADING} Searching for item...")
         try:
@@ -116,11 +120,12 @@ class Tracking(commands.Cog):
         await message.edit(content=f"{emojis.LOADING} Searching for **{xivapi_item.name}**")
 
         try:
-            universalis_nq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, False, world)
+            universalis_nq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, 10, False, datacenter)
 
-            universalis_hq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, True, world)
+            universalis_hq_item: UniversalisItem = await universalis_api.get_item(xivapi_item.id, 10, True, datacenter)
         except ClientResponseError as err:
-            await message.edit(content=f"A problem with Universalis happened! **{err.message}**")
+            util.logger.error(f"Error fetching item: {err}")
+            return await message.edit(content=f"A problem with Universalis happened! **{err.message}**")
 
         sorted_nq_listings = sorted(
             universalis_nq_item.listings,
@@ -146,7 +151,7 @@ class Tracking(commands.Cog):
                 value="```\n"
                 + "\n".join(
                     [
-                        f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                        self.format_listing_entry(listing, datacenter)
                         for listing in sorted_nq_listings[:10]
                         if not listing.hq
                     ]
@@ -161,7 +166,7 @@ class Tracking(commands.Cog):
                 value="```\n"
                 + "\n".join(
                     [
-                        f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
+                        self.format_listing_entry(listing, datacenter)
                         for listing in sorted_hq_listings[:10]
                         if listing.hq
                     ]
@@ -191,12 +196,11 @@ class Tracking(commands.Cog):
             try:
                 channel = error.channel
 
-                await channel.send(error.get_message())
+                return await channel.send(error.get_message())
             except discord.Forbidden:
                 util.logging.warning(f"Unable to send Exception message, \n{error.message}")
 
         await ctx.message.add_reaction(emojis.QUESTION)
-        raise error
 
 
 async def setup(bot: Bot):

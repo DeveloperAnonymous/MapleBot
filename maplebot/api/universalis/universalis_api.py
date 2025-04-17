@@ -19,7 +19,7 @@ FIELDS = [
 ]
 
 
-async def get_item(item_id: int, hq: bool, world: str | None = "Aether") -> UniversalisItem:
+async def get_item(item_id: int, listings: int, hq: bool, world: str) -> UniversalisItem:
     """
     This function gets an item from the Universalis API.
 
@@ -27,10 +27,12 @@ async def get_item(item_id: int, hq: bool, world: str | None = "Aether") -> Univ
     ----------
     item_id : int
         The item ID.
+    listings : int
+        The number of listings to get.
     hq : bool
         Whether to get the HQ item or not.
     world : str, optional
-        The world to get the market info from. Defaults to "Aether".
+        The world to get the market info from.
 
     Returns
     -------
@@ -41,7 +43,7 @@ async def get_item(item_id: int, hq: bool, world: str | None = "Aether") -> Univ
         world = "Aether"
 
     request_fields = ",".join(FIELDS)
-    request_params = f"listings=10&entries=0&statsWithin=0&entriesWithin=0&hq={hq}&fields={request_fields}"
+    request_params = f"listings={listings}&entries=0&statsWithin=0&entriesWithin=0&hq={hq}&fields={request_fields}"
 
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{BASE_URL}/{world}/{item_id}?{request_params}") as response:
