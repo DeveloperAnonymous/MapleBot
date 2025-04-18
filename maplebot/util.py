@@ -8,6 +8,24 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("maplebot")
 logging.getLogger("discord.state").setLevel(logging.ERROR)
 
+ALL_DATACENTERS = sorted(
+    datacenter_name for region_datacenters in configs.REGIONS.values() for datacenter_name in region_datacenters.keys()
+)
+
+ALL_WORLDS = sorted(
+    world
+    for region_datacenters in configs.REGIONS.values()
+    for worlds in region_datacenters.values()
+    for world in worlds
+)
+
+WORLD_TO_DATACENTER = {
+    world: datacenter
+    for datacenters in configs.REGIONS.values()
+    for datacenter, worlds in datacenters.items()
+    for world in worlds
+}
+
 
 class MarketAlertException(Exception):
     def __init__(self, channel: discord.TextChannel, message: str):
@@ -25,7 +43,7 @@ def get_datacenters() -> list[str]:
     Returns:
         list[str]: List of datacenters.
     """
-    return sorted([datacenter for datacenters in configs.REGIONS.values() for datacenter in datacenters.keys()])
+    return ALL_DATACENTERS
 
 
 def get_worlds() -> list[str]:
@@ -35,7 +53,7 @@ def get_worlds() -> list[str]:
     Returns:
         list[str]: List of worlds.
     """
-    return sorted([world for datacenters in configs.REGIONS.values() for world in datacenters.values()])
+    return ALL_WORLDS
 
 
 def get_datacenter_for_world(world: str) -> str | None:
@@ -48,9 +66,4 @@ def get_datacenter_for_world(world: str) -> str | None:
     Returns:
         str: The datacenter for the given world.
     """
-    for datacenters in configs.REGIONS.values():
-        for datacenter, worlds in datacenters.items():
-            if world in worlds:
-                return datacenter
-
-    return None
+    return WORLD_TO_DATACENTER.get(world)

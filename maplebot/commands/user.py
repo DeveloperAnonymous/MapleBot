@@ -38,9 +38,9 @@ class User(commands.Cog):
             async with connection.cursor() as cursor:
                 await cursor.execute(
                     """
-                    INSERT INTO user_settings (discord_id, region, datacenter, world)
+                    INSERT INTO user_settings (id, region, datacenter, world)
                     VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (discord_id)
+                    ON CONFLICT (id)
                     DO UPDATE SET region = EXCLUDED.region, datacenter = EXCLUDED.datacenter, world = EXCLUDED.world
                     """,
                     (ctx.author.id, selection.region, selection.datacenter, selection.world),
@@ -59,7 +59,7 @@ class User(commands.Cog):
         async with self.bot.db_pool.acquire() as connection:
             async with connection.cursor() as cursor:
                 await cursor.execute(
-                    "SELECT datacenter, world FROM user_settings WHERE discord_id = %s",
+                    "SELECT datacenter, world FROM user_settings WHERE id = %s",
                     (ctx.author.id,),
                 )
                 result = await cursor.fetchone()
@@ -101,8 +101,8 @@ class User(commands.Cog):
         async with self.bot.db_pool.acquire() as connection:
             async with connection.cursor() as cursor:
                 await cursor.execute(
-                    "DELETE FROM user_settings WHERE discord_id = %(discord_id)s",
-                    {"discord_id": ctx.author.id},
+                    "DELETE FROM user_settings WHERE id = %s",
+                    (ctx.author.id,),
                 )
 
         await message.edit(content="All your data has been removed from our database.")

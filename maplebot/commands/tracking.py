@@ -43,12 +43,7 @@ class Tracking(commands.Cog):
     @commands.command()
     async def datacenters(self, ctx: Context):
         """List all available datacenters."""
-        await ctx.send(
-            "Available datacenters:\n- "
-            + "\n- ".join(
-                sorted([datacenter for datacenters in configs.REGIONS.values() for datacenter in datacenters.keys()])
-            )
-        )
+        await ctx.send("Available datacenters:\n- " + "\n- ".join(util.get_datacenters()))
 
     @commands.command()
     async def market(self, ctx: Context, *, content: MarketConverter):
@@ -71,17 +66,15 @@ class Tracking(commands.Cog):
         {configs.PREFIX}market region Tsai tou Vounou
         """
         world_data: World = None
-
         datacenter, item_name = content
         if datacenter is None or datacenter == "region":
-            # Fetch the user's default datacenter, or keep world as none
             async with self.bot.db_pool.acquire() as connection:
                 async with connection.cursor() as cursor:
                     await cursor.execute(
                         """
                         SELECT region, datacenter, world
                         FROM user_settings
-                        WHERE discord_id = %s
+                        WHERE id = %s
                         """,
                         (ctx.author.id,),
                     )
