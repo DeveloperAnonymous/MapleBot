@@ -17,7 +17,6 @@ class Bot(commands.Bot):
 
     def __init__(self, command_prefix, **options):
         super().__init__(command_prefix, intents=discord.Intents.all(), case_insensitive=True, **options)
-        self.synced = False
 
         self.maple_items = []
         self.maple_alerts = []
@@ -47,11 +46,13 @@ class Bot(commands.Bot):
                 cog = cog[:-3]
                 await self.load_extension(f"maplebot.commands.{cog}")
 
-        # if not self.synced:
-        #     synced_commands = await self.tree.sync(guild=self.get_guild(636009188786700289))
-        #     util.logger.info(
-        #         "Synced %s commands to the Discord API", len(synced_commands)
-        #     )
+        maple_guild = discord.Object(id=636009188786700289)
+        self.tree.copy_global_to(guild=maple_guild)
+        synced_commands = await self.tree.sync(guild=maple_guild)
+        util.logger.info(
+            f"Synced the following {len(synced_commands)} commands to maple guild:\n- "
+            + "\n- ".join(command.name for command in synced_commands)
+        )
 
     async def on_ready(self) -> None:
         """Event that triggers when the bot is ready."""

@@ -6,15 +6,10 @@ from maplebot import Bot, util
 
 
 class Moderation(commands.Cog):
-    @commands.command()
+    @commands.hybrid_command(name="nospoil", brief="Delete the message you reply to and warn the user not to spoil.")
     @commands.has_permissions(manage_messages=True)
     async def nospoil(self, ctx: commands.Context):
-        """
-        Deletes the message you replied to.
-
-        Also mentions the user who sent the message.
-        """
-
+        """Delete the message you reply to and warn the user not to spoil."""
         spoiler = ctx.message.reference
         spoiler_id = spoiler.message_id
         spoiler_message = await ctx.channel.fetch_message(spoiler_id)

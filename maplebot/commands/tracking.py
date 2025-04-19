@@ -2,6 +2,8 @@
 
 import discord
 from aiohttp.client_exceptions import ClientResponseError
+from discord import Interaction, app_commands
+from discord.app_commands import Choice
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandInvokeError
@@ -14,9 +16,9 @@ from maplebot.api.xiv import xiv_api
 from maplebot.util import MarketAlertException
 
 
-class MarketConverter(commands.Converter):
-    async def convert(self, _: Context, argument: str) -> tuple[str | None, str]:
-        args = argument.split(" ")
+class MarketConverter(commands.Converter, app_commands.Transformer[tuple[str | None, str]]):
+    async def convert(self, _: commands.Context, argument: str) -> tuple[str | None, str]:
+        args = argument.split()
         datacenter = args[0].lower()
         item_name = " ".join(args[1:]) if len(args) > 1 else None
 
@@ -25,6 +27,10 @@ class MarketConverter(commands.Converter):
             datacenter = None
 
         return datacenter, item_name
+
+    async def transform(self, interaction: discord.Interaction, value: str) -> tuple[str | None, str]:
+        ctx = await commands.Context.from_interaction(interaction)
+        return await self.convert(ctx, value)
 
 
 class Tracking(commands.Cog):
@@ -40,13 +46,13 @@ class Tracking(commands.Cog):
 
         return f"{listing.world_name}: {listing.quantity:,}x {listing.price_per_unit:,}g ({listing.total:,}g)"
 
-    @commands.command()
+    @commands.hybrid_command(brief="List all available datacenters.")
     async def datacenters(self, ctx: Context):
         """List all available datacenters."""
         await ctx.send("Available datacenters:\n- " + "\n- ".join(util.get_datacenters()))
 
-    @commands.command()
-    async def market(self, ctx: Context, *, content: MarketConverter):
+    @commands.command(name="market", brief="Get the current market price of an item.")
+    async def market(self, ctx: commands.Context, *, content: MarketConverter):
         f"""
         Gives you the current market price of the item in your datacenter.
 
@@ -65,9 +71,37 @@ class Tracking(commands.Cog):
 
         {configs.PREFIX}market region Tsai tou Vounou
         """
-        world_data: World = None
         datacenter, item_name = content
-        if datacenter is None or datacenter == "region":
+
+        await self._send_market(ctx, item_name, datacenter)
+
+    @app_commands.command(name="market", description="Get the current market price of an item.")
+    @app_commands.describe(
+        item_name="The name of the item to search for",
+        datacenter="The datacenter to search in, defaults to your preferred world",
+    )
+    @app_commands.choices(
+        datacenter=[Choice(name=datacenter, value=datacenter) for datacenter in (*util.get_datacenters() + ["Region"],)]
+    )
+    async def market_interaction(self, interaction: discord.Interaction, item_name: str, datacenter: str = None):
+        """Get the current market price of an item."""
+        await interaction.response.defer(thinking=True)
+
+        if datacenter and datacenter not in util.get_datacenters() and datacenter != "Region":
+            raise MarketAlertException(
+                interaction.channel,
+                f"Invalid datacenter. Available datacenters are:\n- " + "\n- ".join(util.get_datacenters()),
+            )
+
+        await self._send_market(interaction, item_name, datacenter)
+
+    async def _send_market(self, ctx: Context | Interaction, item_name: str, datacenter: str | None = None):
+        """Send a market message."""
+        if isinstance(ctx, Interaction):
+            ctx = await commands.Context.from_interaction(ctx)
+
+        world_data: World = None
+        if datacenter is None or datacenter == "Region":
             async with self.bot.db_pool.acquire() as connection:
                 async with connection.cursor() as cursor:
                     await cursor.execute(
@@ -89,7 +123,7 @@ class Tracking(commands.Cog):
                 f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
             )
 
-        if datacenter == "region":
+        if datacenter == "Region":
             datacenter = world_data.region
         elif datacenter is None:
             datacenter = world_data.datacenter
@@ -194,6 +228,20 @@ class Tracking(commands.Cog):
                 util.logging.warning(f"Unable to send Exception message, \n{error.message}")
 
         await ctx.message.add_reaction(emojis.QUESTION)
+
+    async def cog_app_command_error(self, interaction: Interaction, error):
+        error = error.original if isinstance(error, CommandInvokeError) else error
+        if isinstance(error, MarketAlertException):
+            try:
+                if interaction.response.is_done():
+                    await interaction.followup.send(error.get_message(), ephemeral=True)
+                else:
+                    await interaction.response.send_message(error.get_message(), ephemeral=True)
+                return
+            except discord.Forbidden:
+                util.logging.warning(f"Unable to send Exception message, \n{error.message}")
+
+        await interaction.message.add_reaction(emojis.QUESTION)
 
 
 async def setup(bot: Bot):

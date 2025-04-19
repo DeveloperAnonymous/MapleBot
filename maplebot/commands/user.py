@@ -1,7 +1,5 @@
 """Commands module for user settings."""
 
-from typing import Optional
-
 import discord
 from discord.ext import commands
 from discord.ext.commands import CommandInvokeError, Context
@@ -18,7 +16,7 @@ class User(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.hybrid_command(brief="Set your preferred world for the market commands.")
     async def setworld(self, ctx: Context):
         f"""
         Set your preferred world for the market commands.
@@ -48,7 +46,7 @@ class User(commands.Cog):
 
         await message.edit(content=f"Preferred server set to **{selection.datacenter} - {selection.world}**")
 
-    @commands.command()
+    @commands.hybrid_command(brief="Get your preferred world.")
     async def world(self, ctx: Context):
         f"""
         Get your preferred world.
@@ -70,8 +68,8 @@ class User(commands.Cog):
         datacenter, world = result
         await ctx.send(f"Your preferred world is set to **{datacenter} - {world}**")
 
-    @commands.command()
-    async def forgetme(self, ctx: Context, confirm: Optional[bool]):
+    @commands.hybrid_command(brief="Remove all your data from our database.")
+    async def forgetme(self, ctx: Context, confirm: bool = None):
         f"""
         This will remove all the data linked to your discord account from our database.
 
