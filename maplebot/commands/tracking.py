@@ -57,7 +57,7 @@ class Tracking(commands.Cog):
 
         Syntax:
         {configs.PREFIX}market <item_name>
-        {configs.PREFIX}market <datacenter> <item_name>
+        {configs.PREFIX}market (datacenter) <item_name>
 
         Example:
         {configs.PREFIX}market Tsai tou Vounou

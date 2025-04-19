@@ -2,7 +2,10 @@
 
 A discord bot for Final Fantasy XIV market
 
+You can invite the bot to your server using this link: https://discord.com/oauth2/authorize?client_id=867956706330681375&permissions=370752&scope=bot
+
 ## Tools
+
 - [Universalis](https://universalis.app/)
 - [XIV API](https://xivapi.com/)
 
