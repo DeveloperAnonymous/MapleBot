@@ -18,7 +18,7 @@ async def get_item_by_name(item_name: str) -> XivApiItem | None:
     """
     async with aiohttp.ClientSession() as session:
         async with session.get(
-            f'{BASE_URL}/search?sheets=Item&query=Singular@ja~"{item_name}" Singular@en~"{item_name}" Singular@de~"{item_name}" Singular@fr~"{item_name}"&fields=Icon,Name,Description'
+            f'{BASE_URL}/search?sheets=Item&query=Singular@ja~"{item_name}" Singular@en~"{item_name}" Singular@de~"{item_name}" Singular@fr~"{item_name}"&fields=Icon,Name'
         ) as response:
             response.raise_for_status()
 

@@ -15,4 +15,4 @@ docker stop maplebot
 docker rm maplebot
 
 # Start the container
-docker run -d --net=host --name maplebot maplebot
+docker run --restart unless-stopped -d --net=host --name maplebot maplebot
