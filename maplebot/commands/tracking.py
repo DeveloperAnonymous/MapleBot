@@ -117,11 +117,11 @@ class Tracking(commands.Cog):
                     if result is not None:
                         world_data = World(*result)
 
-        if datacenter is None and (world_data is None or world_data.world is None):
-            raise MarketAlertException(
-                ctx.channel,
-                f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
-            )
+            if world_data is None:
+                raise MarketAlertException(
+                    ctx.channel,
+                    f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
+                )
 
         if datacenter == "Region":
             datacenter = world_data.region
@@ -241,8 +241,13 @@ class Tracking(commands.Cog):
             except discord.Forbidden:
                 util.logging.warning(f"Unable to send Exception message, \n{error.message}")
 
-        await interaction.message.add_reaction(emojis.QUESTION)
-
+        if interaction.message:
+            await interaction.message.add_reaction(emojis.QUESTION)
+        else:
+            await interaction.response.send_message(
+                f"{emojis.QUESTION} An error occurred: {error}",
+                ephemeral=True,
+            )
 
 async def setup(bot: Bot):
     await bot.add_cog(Tracking(bot))

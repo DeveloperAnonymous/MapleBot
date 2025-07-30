@@ -47,6 +47,7 @@ class Bot(commands.Bot):
                 await self.load_extension(f"maplebot.commands.{cog}")
 
         maple_guild = discord.Object(id=636009188786700289)
+        self.tree.clear_commands(guild=maple_guild)
         self.tree.copy_global_to(guild=maple_guild)
         synced_commands = await self.tree.sync(guild=maple_guild)
         util.logger.info(
