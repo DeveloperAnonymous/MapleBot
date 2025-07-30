@@ -243,11 +243,6 @@ class Tracking(commands.Cog):
 
         if interaction.message:
             await interaction.message.add_reaction(emojis.QUESTION)
-        else:
-            await interaction.response.send_message(
-                f"{emojis.QUESTION} An error occurred: {error}",
-                ephemeral=True,
-            )
 
 async def setup(bot: Bot):
     await bot.add_cog(Tracking(bot))
