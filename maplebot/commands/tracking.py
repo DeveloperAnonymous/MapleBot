@@ -6,11 +6,7 @@ from discord import Interaction, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from discord.ext.commands.errors import (
-    AppCommandError,
-    CommandError,
-    CommandInvokeError,
-)
+from discord.ext.commands.errors import CommandError, CommandInvokeError
 
 import configs
 from maplebot import Bot, World, emojis, util
@@ -233,7 +229,7 @@ class Tracking(commands.Cog):
 
         await ctx.message.add_reaction(emojis.QUESTION)
 
-    async def cog_app_command_error(self, interaction: Interaction, error: AppCommandError):
+    async def cog_app_command_error(self, interaction: Interaction, error):
         error = error.original if isinstance(error, CommandInvokeError) else error
         if isinstance(error, MarketAlertException):
             try:

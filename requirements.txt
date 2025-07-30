@@ -1,6 +1,6 @@
 aiopg
 aiohttp
-discord.py
+discord.py<3.0.0
 pyxivapi~=0.5.1
 python-dateutil
 pytz
