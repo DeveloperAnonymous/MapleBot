@@ -6,7 +6,11 @@ from discord import Interaction, app_commands
 from discord.app_commands import Choice
 from discord.ext import commands
 from discord.ext.commands.context import Context
-from discord.ext.commands.errors import CommandInvokeError
+from discord.ext.commands.errors import (
+    AppCommandError,
+    CommandError,
+    CommandInvokeError,
+)
 
 import configs
 from maplebot import Bot, World, emojis, util
@@ -217,7 +221,7 @@ class Tracking(commands.Cog):
 
         await message.edit(content=f"Results for **{xivapi_item.name}**", embed=embed)
 
-    async def cog_command_error(self, ctx: Context, error):
+    async def cog_command_error(self, ctx: Context, error: CommandError):
         error = error.original if isinstance(error, CommandInvokeError) else error
         if isinstance(error, MarketAlertException):
             try:
@@ -229,7 +233,7 @@ class Tracking(commands.Cog):
 
         await ctx.message.add_reaction(emojis.QUESTION)
 
-    async def cog_app_command_error(self, interaction: Interaction, error):
+    async def cog_app_command_error(self, interaction: Interaction, error: AppCommandError):
         error = error.original if isinstance(error, CommandInvokeError) else error
         if isinstance(error, MarketAlertException):
             try:
@@ -237,12 +241,19 @@ class Tracking(commands.Cog):
                     await interaction.followup.send(error.get_message(), ephemeral=True)
                 else:
                     await interaction.response.send_message(error.get_message(), ephemeral=True)
-                return
             except discord.Forbidden:
                 util.logging.warning(f"Unable to send Exception message, \n{error.message}")
+            finally:
+                return
 
         if interaction.message:
             await interaction.message.add_reaction(emojis.QUESTION)
+        elif interaction.channel:
+            try:
+                await interaction.channel.send(f"{emojis.QUESTION} An error occurred: {error}")
+            except discord.Forbidden:
+                util.logging.warning(f"Unable to send Exception message, \n{error}")
+
 
 async def setup(bot: Bot):
     await bot.add_cog(Tracking(bot))

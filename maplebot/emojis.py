@@ -1,5 +1,5 @@
-LOADING = '<a:loading:914360141925724200>'
-CROSS = '\u274C'
-CHECK = '\u2705'
-QUESTION = '\u2753'
-BANGBANG = ':bangbang:'
+LOADING = "<a:loading:914360141925724200>"
+CROSS = "\u274c"
+CHECK = "\u2705"
+QUESTION = "\u2753"
+BANGBANG = ":bangbang:"

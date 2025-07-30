@@ -5,8 +5,16 @@ import discord
 from .participant import Participant
 from .requirement import Requirement
 
+
 class Event:
-    def __init__(self, name: str, description: str, participants: List[Participant], requirements: List[Requirement], owner: discord.Member):
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        participants: List[Participant],
+        requirements: List[Requirement],
+        owner: discord.Member,
+    ):
         self.name = name
         self.owner = owner
         self.description = description
@@ -35,4 +43,3 @@ class Event:
         embed.add_field(name="Requirements", value=requirements_output, inline=False)
 
         return embed
-        

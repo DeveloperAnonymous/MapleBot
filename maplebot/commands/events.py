@@ -10,20 +10,20 @@ from maplebot import emojis as emojis
 from maplebot import util
 from maplebot.commands.modals.event import CreateEventModal
 from maplebot.event import Event
-from maplebot.requirement import (ILVLRequirement, LevelRequirement,
-                                  ParticipantsRequirement, Requirement)
+from maplebot.requirement import (
+    ILVLRequirement,
+    LevelRequirement,
+    ParticipantsRequirement,
+    Requirement,
+)
 
 
 @app_commands.guild_only()
-class Events(
-    commands.GroupCog, group_name="event", description="Commands to manage events"
-):
+class Events(commands.GroupCog, group_name="event", description="Commands to manage events"):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    async def timezones_autocomplete(
-        self, interaction: discord.Interaction, input: str
-    ):
+    async def timezones_autocomplete(self, interaction: discord.Interaction, input: str):
         """
         Autocomplete timezones
 
@@ -120,8 +120,7 @@ class Events(
         # Get the name of the event
         message: discord.Message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.author.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.author.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         event_name: str = message.content
@@ -140,17 +139,14 @@ class Events(
         # Get the description of the event
         message: discord.Message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.user.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.user.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         event_description: str = message.content.replace("\\n", "\n")
         await message.delete()
 
         event_embed.remove_field(1)
-        event_embed.add_field(
-            name="Event description", value=event_description, inline=False
-        )
+        event_embed.add_field(name="Event description", value=event_description, inline=False)
         event_embed.add_field(
             name="Step 3",
             value="Please type the date of when the event will occur. (DD/MM/YYYY HH:mm TZ)",
@@ -161,8 +157,7 @@ class Events(
         # Get the date of the event
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.user.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.user.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_event_date: str = message.content
@@ -199,8 +194,7 @@ class Events(
         # Get the minimum ilvl required
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.user.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.user.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_min_ilvl = message.content
@@ -226,8 +220,7 @@ class Events(
         # Get the minimum level required
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.user.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.user.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_min_level = message.content
@@ -253,8 +246,7 @@ class Events(
         # Get the maximum number of participants
         message = await bot.wait_for(
             "message",
-            check=lambda m: m.author.id == interaction.author.id
-            and m.channel.id == interaction.channel.id,
+            check=lambda m: m.author.id == interaction.author.id and m.channel.id == interaction.channel.id,
             timeout=60,
         )
         raw_max_participants = message.content
@@ -281,16 +273,12 @@ class Events(
         if max_participants is not None:
             requirements.append(ParticipantsRequirement(max_participants))
 
-        event = Event(
-            event_name, event_description, event_date, requirements, interaction.author
-        )
+        event = Event(event_name, event_description, event_date, requirements, interaction.author)
 
         interaction.delete_original_response()
         message = await interaction.send(f"{emojis.LOADING} Creating event...")
         # await event_api.create_event(event)
-        await message.edit(
-            content=f"{emojis.CHECK} Event created!", embed=event.get_embed()
-        )
+        await message.edit(content=f"{emojis.CHECK} Event created!", embed=event.get_embed())
 
 
 async def setup(bot: Bot):
