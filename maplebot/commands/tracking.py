@@ -79,7 +79,6 @@ class Tracking(commands.Cog):
         await self._send_market(ctx, item_name, datacenter)
 
     @app_commands.command(name="market", description="Get the current market price of an item.")
-    @app_commands.rename(item_name="Item Name", datacenter="Datacenter")
     @app_commands.describe(
         item_name="The name of the item to search for",
         datacenter="The datacenter to search in, defaults to your preferred world",
