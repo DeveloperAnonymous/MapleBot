@@ -5,7 +5,7 @@ from difflib import SequenceMatcher
 import discord
 from discord.ext import commands
 
-from maplebot import Bot, util
+from maplebot import MapleBot, util
 
 PRAYER = "Excuse me father, for I have sinned."
 
@@ -20,6 +20,6 @@ class Sinner(commands.Cog):
             await message.channel.send("Aye, mine own issue, i f'rgive thee :pray:")
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     await bot.add_cog(Sinner())
     util.logger.info("Sinner cog loaded")

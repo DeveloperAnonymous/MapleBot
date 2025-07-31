@@ -5,7 +5,7 @@ import pytz
 from discord import app_commands
 from discord.ext import commands
 
-from maplebot import Bot
+from maplebot import MapleBot
 from maplebot import emojis as emojis
 from maplebot import util
 from maplebot.commands.modals.event import CreateEventModal
@@ -20,7 +20,7 @@ from maplebot.requirement import (
 
 @app_commands.guild_only()
 class Events(commands.GroupCog, group_name="event", description="Commands to manage events"):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: MapleBot):
         self.bot = bot
 
     async def timezones_autocomplete(self, interaction: discord.Interaction, input: str):
@@ -281,7 +281,7 @@ class Events(commands.GroupCog, group_name="event", description="Commands to man
         await message.edit(content=f"{emojis.CHECK} Event created!", embed=event.get_embed())
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     return
     await bot.add_cog(Events(bot))
     util.logger.info("Events cog loaded")

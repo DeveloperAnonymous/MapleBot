@@ -2,7 +2,7 @@
 
 from discord.ext import commands
 
-from maplebot import Bot, util
+from maplebot import MapleBot, util
 
 
 class Moderation(commands.Cog):
@@ -18,6 +18,6 @@ class Moderation(commands.Cog):
         await ctx.send(f"Please, {spoiler_author.mention}, don't spoil the others!")
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     await bot.add_cog(Moderation())
     util.logger.info("Moderation cog loaded")

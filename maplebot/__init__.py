@@ -1,4 +1,4 @@
-from .bot import Bot
+from .bot import MapleBot
 from .world import World
 
-__all__ = ["Bot", "World"]
+__all__ = ["MapleBot", "World"]

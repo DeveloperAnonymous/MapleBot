@@ -4,12 +4,14 @@ import discord
 from aiohttp.client_exceptions import ClientResponseError
 from discord import Interaction, app_commands
 from discord.app_commands import Choice
+from discord.app_commands.errors import AppCommandError
+from discord.app_commands.errors import CommandInvokeError as AppCommandInvokeError
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from discord.ext.commands.errors import CommandError, CommandInvokeError
 
 import configs
-from maplebot import Bot, World, emojis, util
+from maplebot import MapleBot, World, emojis, util
 from maplebot.api.universalis import universalis_api
 from maplebot.api.universalis.models import UniversalisItem, UniversalisItemListing
 from maplebot.api.xiv import xiv_api
@@ -36,7 +38,7 @@ class MarketConverter(commands.Converter, app_commands.Transformer[tuple[str | N
 class Tracking(commands.Cog):
     """Commands for tracking items on the market."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: MapleBot):
         self.bot = bot
 
     def format_listing_entry(self, listing: UniversalisItemListing, datacenter: str) -> str:
@@ -54,6 +56,7 @@ class Tracking(commands.Cog):
     @commands.command(name="market", brief="Get the current market price of an item.")
     async def market(self, ctx: commands.Context, *, content: MarketConverter):
         f"""
+        **THIS COMMAND IS DEPRECATED, USE `/market` INSTEAD!**
         Gives you the current market price of the item in your datacenter.
 
         You can also specify a datacenter to check the price in another datacenter.
@@ -76,6 +79,7 @@ class Tracking(commands.Cog):
         await self._send_market(ctx, item_name, datacenter)
 
     @app_commands.command(name="market", description="Get the current market price of an item.")
+    @app_commands.rename(item_name="Item Name", datacenter="Datacenter")
     @app_commands.describe(
         item_name="The name of the item to search for",
         datacenter="The datacenter to search in, defaults to your preferred world",
@@ -120,7 +124,7 @@ class Tracking(commands.Cog):
             if world_data is None:
                 raise MarketAlertException(
                     ctx.channel,
-                    f"You didn't set your preferred world. Please set it with `{configs.PREFIX}setworld`",
+                    f"You didn't set your preferred world. Please set it with `/setworld`",
                 )
 
         if datacenter == "Region":
@@ -229,8 +233,8 @@ class Tracking(commands.Cog):
 
         await ctx.message.add_reaction(emojis.QUESTION)
 
-    async def cog_app_command_error(self, interaction: Interaction, error):
-        error = error.original if isinstance(error, CommandInvokeError) else error
+    async def cog_app_command_error(self, interaction: Interaction, error: AppCommandError):
+        error = error.original if isinstance(error, AppCommandInvokeError) else error
         if isinstance(error, MarketAlertException):
             try:
                 if interaction.response.is_done():
@@ -244,13 +248,8 @@ class Tracking(commands.Cog):
 
         if interaction.message:
             await interaction.message.add_reaction(emojis.QUESTION)
-        elif interaction.channel:
-            try:
-                await interaction.channel.send(f"{emojis.QUESTION} An error occurred: {error}")
-            except discord.Forbidden:
-                util.logging.warning(f"Unable to send Exception message, \n{error}")
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     await bot.add_cog(Tracking(bot))
     util.logger.info("Tracking cog loaded")

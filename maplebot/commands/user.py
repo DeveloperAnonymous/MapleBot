@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord.ext.commands import CommandInvokeError, Context
 
 import configs
-from maplebot import Bot, emojis, util
+from maplebot import MapleBot, emojis, util
 from maplebot.commands.interactions import WorldSelectionInteraction
 from maplebot.util import MarketAlertException
 
@@ -13,7 +13,7 @@ from maplebot.util import MarketAlertException
 class User(commands.Cog):
     """Commands for user settings."""
 
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: MapleBot):
         self.bot = bot
 
     @commands.hybrid_command(brief="Set your preferred world for the market commands.")
@@ -52,6 +52,7 @@ class User(commands.Cog):
         Get your preferred world.
 
         Syntax:
+        /world
         {configs.PREFIX}world
         """
         async with self.bot.db_pool.acquire() as connection:
@@ -63,7 +64,7 @@ class User(commands.Cog):
                 result = await cursor.fetchone()
 
         if result is None or result[1] is None:
-            return await ctx.send(f"You don't have a preferred world set. Use `{configs.PREFIX}setworld` to set one.")
+            return await ctx.send(f"You don't have a preferred world set. Use `/setworld` to set one.")
 
         datacenter, world = result
         await ctx.send(f"Your preferred world is set to **{datacenter} - {world}**")
@@ -119,6 +120,6 @@ class User(commands.Cog):
         raise error
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     await bot.add_cog(User(bot))
     util.logger.info("User cog loaded")

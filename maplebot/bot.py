@@ -12,7 +12,7 @@ from dbconfig import DatabaseConfig
 from maplebot import util
 
 
-class Bot(commands.Bot):
+class MapleBot(commands.Bot):
     """Main bot class for MapleBot."""
 
     def __init__(self, command_prefix, **options):
@@ -46,10 +46,11 @@ class Bot(commands.Bot):
                 cog = cog[:-3]
                 await self.load_extension(f"maplebot.commands.{cog}")
 
-        maple_guild = discord.Object(id=636009188786700289)
+        maple_guild = discord.Object(id=1379579457513328833)
         self.tree.clear_commands(guild=maple_guild)
         self.tree.copy_global_to(guild=maple_guild)
-        synced_commands = await self.tree.sync(guild=maple_guild)
+        synced_commands = await self.tree.sync()
+
         util.logger.info(
             f"Synced the following {len(synced_commands)} commands to maple guild:\n- "
             + "\n- ".join(command.name for command in synced_commands)

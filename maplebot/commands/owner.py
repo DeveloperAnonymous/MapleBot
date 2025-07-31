@@ -3,11 +3,11 @@
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from maplebot import Bot, util
+from maplebot import MapleBot, util
 
 
 class OwnerCog(commands.Cog):
-    def __init__(self, bot: Bot):
+    def __init__(self, bot: MapleBot):
         self.bot = bot
 
     @commands.command(hidden=True)
@@ -18,6 +18,6 @@ class OwnerCog(commands.Cog):
         await ctx.send(f"✅ Synced {len(synced)} commands.", ephemeral=True)
 
 
-async def setup(bot: Bot):
+async def setup(bot: MapleBot):
     await bot.add_cog(OwnerCog(bot))
     util.logger.info("Owner cog loaded")
