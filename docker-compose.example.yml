@@ -1,0 +1,27 @@
+services:
+  database:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: MapleDB
+      POSTGRES_USER: MapleSyrup
+      POSTGRES_PASSWORD: Passw0rd!
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - maplebot_net
+
+  bot:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - database
+    networks:
+      - maplebot_net
+
+networks:
+  maplebot_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
